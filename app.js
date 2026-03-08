@@ -2,7 +2,7 @@
 // CODEBUSTERS PRACTICE APP  v2
 // =============================================
 
-let currentCipher = 'caesar';
+let currentCipher = 'aristocrat';
 let currentProblem = null;
 let timerInterval = null;
 let timerSeconds = 0;
@@ -171,18 +171,11 @@ async function loadCipher(name) {
 function renderCurrentProblemCore() {
   if (!currentProblem) return;
   switch (currentProblem.type) {
-    case 'caesar':      renderCaesarUI(); break;
-    case 'atbash':      renderAtbashUI(); break;
     case 'aristocrat':  renderAristocratUI(); break;
-    case 'affine':      renderAffineUI(); break;
-    case 'vigenere':    renderVigenereUI(); break;
     case 'porta':       renderPortaUI(); break;
     case 'hill2':
     case 'hill3':       renderHillUI(); break;
     case 'baconian':    renderBaconianUI(); break;
-    case 'morbit':      renderMorbitUI(); break;
-    case 'pollux':      renderPolluxUI(); break;
-    case 'railfence':   renderRailFenceUI(); break;
     case 'cryptarithm': renderCryptarithmUI(); break;
   }
 }
@@ -192,43 +185,17 @@ function renderCurrentProblemCore() {
 // =============================================
 async function generateProblemCore(name) {
   switch (name) {
-    case 'caesar': {
-      const q = getRandomFallbackQuote();
-      const shift = Caesar.generateKey();
-      currentProblem = { type:'caesar', plaintext:q, ciphertext:Caesar.encrypt(q,shift), key:shift };
-      break;
-    }
-    case 'atbash': {
-      const q = getRandomFallbackQuote();
-      currentProblem = { type:'atbash', plaintext:q, ciphertext:Atbash.encrypt(q) };
-      break;
-    }
     case 'aristocrat':
-    case 'aristocrat-mis':
     case 'patristocrat': {
       let q = getRandomFallbackQuote();
       while (q.replace(/[^A-Z]/gi,'').length < 45) q = getRandomFallbackQuote();
-      const mis = name === 'aristocrat-mis';
       const isPat = name === 'patristocrat';
-      if (mis) q = misspellQuote(q);
       const kt = ['random','K1','K2'][randInt(0,2)];
       const kr = Aristocrat.generateKey(kt);
       const key = kr.key ? kr : { key: kr };
       const ct = isPat ? Patristocrat.encrypt(q, key.key||key) : Aristocrat.encrypt(q, key.key||key);
       currentProblem = { type:'aristocrat', subtype:name, plaintext:q, ciphertext:ct,
-        key:key.key||key, keyType:kr.type||kt, keyword:kr.keyword, isPat, misspelled:mis };
-      break;
-    }
-    case 'affine': {
-      const q = getRandomFallbackQuote();
-      const {a,b} = Affine.generateKey();
-      currentProblem = { type:'affine', plaintext:q, ciphertext:Affine.encrypt(q,{a,b}), key:{a,b} };
-      break;
-    }
-    case 'vigenere': {
-      const q = getRandomFallbackQuote();
-      const key = Vigenere.generateKey();
-      currentProblem = { type:'vigenere', plaintext:q, ciphertext:Vigenere.encrypt(q,key), key };
+        key:key.key||key, keyType:kr.type||kt, keyword:kr.keyword, isPat, misspelled:false };
       break;
     }
     case 'porta': {
@@ -254,24 +221,6 @@ async function generateProblemCore(name) {
       const style = randInt(0,3);
       const enc = Baconian.encrypt(ph);
       currentProblem = { type:'baconian', plaintext:ph, ciphertext:enc, baconStyle:style };
-      break;
-    }
-    case 'morbit': {
-      const ph = getShortPhrase();
-      const key = Morbit.generateKey();
-      currentProblem = { type:'morbit', plaintext:ph, ciphertext:Morbit.encrypt(ph,key), key };
-      break;
-    }
-    case 'pollux': {
-      const ph = getShortPhrase();
-      const ko = Pollux.generateKey();
-      currentProblem = { type:'pollux', plaintext:ph, ciphertext:Pollux.encrypt(ph,ko), key:ko };
-      break;
-    }
-    case 'railfence': {
-      const q = getRandomFallbackQuote();
-      const rails = RailFence.generateKey();
-      currentProblem = { type:'railfence', plaintext:q, ciphertext:RailFence.encrypt(q,rails), key:rails };
       break;
     }
     case 'cryptarithm': {
@@ -877,12 +826,8 @@ function checkAnswer() {
   let correct=false, msg='';
   const getVal = id => (document.getElementById(id)?.value||'').toUpperCase().replace(/[^A-Z ]/g,'').trim();
 
-  if (p.type==='caesar') {
-    const m = compareAnswers(getVal('caesarAnswer'), p.plaintext.toUpperCase().replace(/[^A-Z ]/g,'').trim());
-    correct=m>=0.98; msg=correct?'✓ CORRECT!':m>0.8?`◑ CLOSE — ${Math.round(m*100)}%`:'✗ INCORRECT';
-  } else if (p.type==='atbash') {
-    const m = compareAnswers(getVal('atbashAnswer'), p.plaintext.toUpperCase().replace(/[^A-Z ]/g,'').trim());
-    correct=m>=0.98; msg=correct?'✓ CORRECT!':m>0.8?`◑ ${Math.round(m*100)}%`:'✗ INCORRECT';
+  if (p.type==='caesar' || p.type==='atbash') {
+    // removed ciphers - no-op
   } else if (p.type==='aristocrat') {
     const inputs=[...document.querySelectorAll('.plain-input')];
     const pt=p.plaintext.toUpperCase().replace(/[^A-Z]/g,'').split('');
@@ -895,30 +840,6 @@ function checkAnswer() {
     });
     correct=right===pt.length;
     msg=correct?`✓ PERFECT! ${right}/${pt.length}`:`◑ ${right}/${pt.length} correct (${Math.round(right/pt.length*100)}%)`;
-  } else if (p.type==='affine') {
-    const inputs=[...document.querySelectorAll('.plain-input')];
-    const pt=p.plaintext.toUpperCase().replace(/[^A-Z]/g,'').split('');
-    let right=0;
-    inputs.forEach((inp,i)=>{
-      const val=inp.value.toUpperCase();
-      inp.classList.remove('correct','incorrect');
-      if(!val) return;
-      val===pt[i] ? (right++,inp.classList.add('correct')) : inp.classList.add('incorrect');
-    });
-    correct=right===pt.length;
-    msg=correct?'✓ CORRECT!':`◑ ${right}/${pt.length} (${Math.round(right/pt.length*100)}%)`;
-  } else if (p.type==='vigenere'||p.type==='porta') {
-    const inputs=[...document.querySelectorAll('.plain-input')];
-    const pt=p.plaintext.toUpperCase().replace(/[^A-Z]/g,'').split('');
-    let right=0;
-    inputs.forEach((inp,i)=>{
-      const val=inp.value.toUpperCase();
-      inp.classList.remove('correct','incorrect');
-      if(!val) return;
-      val===pt[i] ? (right++,inp.classList.add('correct')) : inp.classList.add('incorrect');
-    });
-    correct=right===pt.length;
-    msg=correct?'✓ CORRECT!':`◑ ${right}/${pt.length} (${Math.round(right/pt.length*100)}%)`;
   } else if (p.type==='hill2'||p.type==='hill3') {
     const ua=getVal('hillAnswer').replace(/\s/g,'');
     const exp=p.plaintext.toUpperCase().replace(/[^A-Z]/g,'');
@@ -927,15 +848,6 @@ function checkAnswer() {
     const ua=getVal('baconAnswer').replace(/\s/g,'');
     correct=ua===p.plaintext.toUpperCase().replace(/[^A-Z]/g,'');
     msg=correct?'✓ CORRECT!':'✗ INCORRECT';
-  } else if (p.type==='morbit') {
-    const m=compareAnswers(getVal('morbitAnswer'), p.plaintext.toUpperCase().replace(/[^A-Z ]/g,'').trim());
-    correct=m>0.9; msg=correct?'✓ CORRECT!':'✗ INCORRECT';
-  } else if (p.type==='pollux') {
-    const m=compareAnswers(getVal('polluxAnswer'), p.plaintext.toUpperCase().replace(/[^A-Z ]/g,'').trim());
-    correct=m>0.9; msg=correct?'✓ CORRECT!':'✗ INCORRECT';
-  } else if (p.type==='railfence') {
-    const m=compareAnswers(getVal('railAnswer'), p.plaintext.toUpperCase().replace(/[^A-Z ]/g,'').trim());
-    correct=m>0.9; msg=correct?'✓ CORRECT!':'✗ INCORRECT';
   } else if (p.type==='cryptarithm') {
     if (p.problem.solution) {
       correct=Object.entries(p.problem.solution).every(([l,d])=>{
@@ -974,19 +886,14 @@ function showAnswerCore() {
     else html+=`<div style="color:var(--text-secondary);margin-top:10px;">${p.problem.note||'Multiple solutions'}</div>`;
   } else {
     html=`<div class="key-reveal-block"><div class="key-reveal-label">Plaintext Solution</div><div class="solution-text">${p.plaintext.toUpperCase()}</div></div>`;
-    if (p.type==='caesar') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Shift</div><div class="key-reveal-value">ROT-${p.key}</div></div>`;
-    else if (p.type==='affine') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Keys</div><div class="key-reveal-value">a=${p.key.a}  b=${p.key.b}</div></div>`;
-    else if (p.type==='aristocrat') {
+    if (p.type==='aristocrat') {
       const rows=ALPHABET.split('').map(c=>{const pt=Object.entries(p.key).find(([,v])=>v===c);return `<div class="mapping-item"><div class="mapping-cipher">${c}</div><div class="mapping-plain">${pt?pt[0]:''}</div></div>`;}).join('');
       html+=`<div class="key-reveal-block"><div class="key-reveal-label">Cipher → Plain</div><div class="mapping-strip">${rows}</div></div>`;
       if (p.keyword) html+=`<div class="key-reveal-block"><div class="key-reveal-label">Keyword</div><div class="key-reveal-value">${p.keyword}</div></div>`;
     }
-    else if (p.type==='vigenere'||p.type==='porta') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Keyword</div><div class="key-reveal-value">${p.key}</div></div>`;
+    else if (p.type==='porta') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Keyword</div><div class="key-reveal-value">${p.key}</div></div>`;
     else if (p.type==='hill2'||p.type==='hill3') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Key</div><div class="key-reveal-value">${p.key.word||''}</div></div>`;
     else if (p.type==='baconian') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Encoded</div><div class="key-reveal-value" style="font-size:12px;word-break:break-all;">${p.ciphertext}</div></div>`;
-    else if (p.type==='morbit') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Pair Mapping</div><div class="key-reveal-value" style="font-size:12px;">${Morbit.PAIRS.map(pair=>`${pair}→${p.key[pair]}`).join('  ')}</div></div>`;
-    else if (p.type==='pollux') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Digit Mapping</div><div class="key-reveal-value" style="font-size:12px;">Dots:${p.key.dots.join(',')}  Dashes:${p.key.dashes.join(',')}  Spaces:${p.key.spaces.join(',')}</div></div>`;
-    else if (p.type==='railfence') html+=`<div class="key-reveal-block"><div class="key-reveal-label">Rails</div><div class="key-reveal-value">${p.key}</div></div>`;
   }
   document.getElementById('answerModalBody').innerHTML=html;
   new bootstrap.Modal(document.getElementById('answerModal')).show();
@@ -997,6 +904,21 @@ function showAnswerCore() {
 // =============================================
 document.getElementById('printTestBtn').addEventListener('click', generatePrintTest);
 
+// All available cipher types for random test generation
+const ALL_PRINT_TYPES = [
+  'aristocrat','aristocrat','aristocrat',
+  'patristocrat','patristocrat',
+  'xenocrypt',
+  'porta',
+  'hill2','hill3',
+  'baconian',
+  'frac-morse',
+  'nihilist',
+  'checkerboard',
+  'columnar',
+  'cryptarithm','cryptarithm',
+];
+
 async function generatePrintTest() {
   const btn = document.getElementById('printTestBtn');
   btn.textContent = '⌛ GENERATING...';
@@ -1005,22 +927,36 @@ async function generatePrintTest() {
   const saved = currentProblem;
   const savedCipher = currentCipher;
 
-  const types = ['caesar','aristocrat','patristocrat','vigenere','porta','hill2','affine','baconian','morbit','railfence','cryptarithm'];
+  // Pick 8 random non-duplicate questions from the pool
+  const pool = shuffleArray([...ALL_PRINT_TYPES]);
+  const typeCounts = {};
+  const chosen = [];
+  const maxPerType = { aristocrat: 2, patristocrat: 1, cryptarithm: 1 };
+  for (const t of pool) {
+    const max = maxPerType[t] || 1;
+    typeCounts[t] = (typeCounts[t] || 0);
+    if (typeCounts[t] < max) {
+      chosen.push(t);
+      typeCounts[t]++;
+      if (chosen.length === 8) break;
+    }
+  }
+
   const problems = [];
-  for (const t of types) {
+  for (const t of chosen) {
     await generateProblem(t);
     if (currentProblem) problems.push({ ...currentProblem, cipherMeta: getCipherMeta(t) });
   }
 
-  // Restore state
   currentProblem = saved;
   currentCipher = savedCipher;
 
-  const pw = window.open('','_blank','width=900,height=700');
+  const pw = window.open('', '_blank');
+  if (!pw) { alert('Please allow popups to print the test.'); btn.textContent = '⎙ PRINT TEST'; btn.disabled = false; return; }
   pw.document.write(buildPrintHTML(problems));
   pw.document.close();
   pw.focus();
-  setTimeout(() => pw.print(), 600);
+  setTimeout(() => pw.print(), 800);
 
   btn.textContent = '⎙ PRINT TEST';
   btn.disabled = false;
@@ -1028,270 +964,518 @@ async function generatePrintTest() {
 
 function buildPrintHTML(problems) {
   const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CodeBusters Practice Test</title>
-  <style>
+
+  // The print canvas is always 816px wide (96dpi * 8.5in).
+  // On screen we scale this to fit the viewport using JS below.
+  // On print the browser uses @page margins and ignores the pixel sizes.
+  const PAGE_W = 816;   // 8.5in @ 96dpi
+  const PAGE_H = 1056;  // 11in  @ 96dpi
+  const PAD_H  = 58;    // 0.6in top/bottom padding
+  const PAD_W  = 67;    // 0.7in left/right padding
+
+  const css = `
     @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700&family=Oswald:wght@400;600;700&display=swap');
-    *{box-sizing:border-box;margin:0;padding:0;}
-    body{font-family:'Courier Prime',monospace;background:#fff;color:#000;font-size:11pt;}
-    .page{width:8.5in;min-height:11in;padding:0.65in 0.75in;page-break-after:always;}
-    .page:last-child{page-break-after:avoid;}
-    h1{font-family:'Oswald',sans-serif;font-size:22pt;font-weight:700;letter-spacing:6px;text-align:center;}
-    .sub{text-align:center;font-size:10pt;letter-spacing:3px;margin-bottom:4px;}
-    .info-row{display:flex;justify-content:space-between;margin:10px 0 16px;font-size:10pt;border-top:2px solid #000;padding-top:8px;}
-    .info-row span{border-bottom:1px solid #000;min-width:130px;display:inline-block;}
-    .score-table{width:100%;border-collapse:collapse;font-size:9pt;margin-bottom:16px;}
-    .score-table th,.score-table td{border:1px solid #999;padding:3px 8px;}
-    .score-table th{background:#f0f0f0;}
-    .q-block{margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #ccc;}
-    .q-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
-    .q-num{font-family:'Oswald',sans-serif;font-size:13pt;font-weight:700;letter-spacing:2px;}
-    .q-pts{font-size:9pt;font-style:italic;}
-    .q-type{font-size:8pt;letter-spacing:2px;color:#555;margin-bottom:5px;text-transform:uppercase;}
-    .ct{font-family:'Courier Prime',monospace;font-size:13pt;font-weight:700;letter-spacing:2px;line-height:2;word-spacing:10px;margin:6px 0;}
-    .ct-grp{font-family:'Courier Prime',monospace;font-size:13pt;font-weight:700;letter-spacing:2px;line-height:2;word-break:break-word;margin:6px 0;}
-    .ct-num{font-family:'Courier Prime',monospace;font-size:13pt;font-weight:700;letter-spacing:3px;margin:6px 0;}
-    .ans-line{border-bottom:1px solid #000;height:24px;width:100%;margin:6px 0;}
-    .freq-t{border-collapse:collapse;font-size:8pt;margin:4px 0;}
-    .freq-t th,.freq-t td{border:1px solid #ccc;width:20px;height:16px;text-align:center;padding:0;}
-    .freq-t th{background:#f0f0f0;font-weight:700;}
-    .sub-t{border-collapse:collapse;font-size:8pt;margin:4px 0;}
-    .sub-t th,.sub-t td{border:1px solid #999;width:24px;height:22px;text-align:center;padding:0;}
-    .sub-t th{background:#f0f0f0;}
-    .matrix{border-left:2px solid #000;border-right:2px solid #000;padding:4px 8px;display:inline-flex;flex-direction:column;gap:4px;}
-    .mrow{display:flex;gap:12px;}
-    .mcell{width:24px;text-align:center;font-weight:700;}
-    .vig-t{border-collapse:collapse;font-size:7pt;}
-    .vig-t th,.vig-t td{border:1px solid #ddd;width:14px;height:14px;text-align:center;padding:0;}
-    .vig-t th{background:#f5f5f5;}
-    .port-t{border-collapse:collapse;font-size:8pt;}
-    .port-t th,.port-t td{border:1px solid #ccc;width:20px;height:17px;text-align:center;padding:0;}
-    .port-t th{background:#f0f0f0;}
-    .bac-t{display:grid;grid-template-columns:repeat(6,auto);gap:2px 10px;font-size:9pt;margin:4px 0;}
-    .bac-entry{display:flex;gap:5px;}
-    .bac-l{font-weight:700;min-width:14px;}
-    .morse-ref{display:grid;grid-template-columns:repeat(6,auto);gap:1px 8px;font-size:8pt;margin:4px 0;}
-    .morse-e{display:flex;gap:4px;}
-    .morse-l{font-weight:700;min-width:14px;}
-    @media print{body{-webkit-print-color-adjust:exact;}.page{page-break-after:always;}.page:last-child{page-break-after:avoid;}}
-  </style></head><body>`;
+    @page { size: letter; margin: 0.6in 0.7in; }
 
-  // Cover page
-  html += `<div class="page">
-    <h1>CODEBUSTERS</h1>
-    <div class="sub">DIVISION C — PRACTICE TEST &nbsp;|&nbsp; ${today}</div>
-    <div class="info-row">
-      <div>Team: <span style="min-width:200px;"></span></div>
-      <div>Time: <span style="min-width:80px;"></span></div>
-      <div>Score: <span style="min-width:80px;"></span></div>
-    </div>
-    <p style="font-size:9pt;margin-bottom:14px;line-height:1.5;">
-      <strong>Instructions:</strong> Decode each cipher as directed. Show all work. 
-      No letter maps to itself in substitution ciphers (except Caesar/Affine). 
-      Up to 2 wrong letters on Aristocrats/Patristocrats still earn partial credit. 
-      A non-scientific calculator may be used for math ciphers.
-    </p>
-    <table class="score-table"><thead><tr><th>#</th><th>Cipher</th><th>Type</th><th>Points</th><th>Score</th></tr></thead><tbody>`;
-  let total=0;
-  problems.forEach((p,i) => {
-    total+=p.cipherMeta.pts;
-    html+=`<tr><td>${i+1}</td><td>${p.cipherMeta.name}</td><td style="font-size:8pt;">${p.cipherMeta.type}</td><td style="text-align:center;">${p.cipherMeta.pts}</td><td></td></tr>`;
-  });
-  html+=`<tr><td colspan="3" style="text-align:right;font-weight:700;">TOTAL</td><td style="text-align:center;font-weight:700;">${total}</td><td></td></tr>`;
-  html+='</tbody></table></div>';
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  // Question pages
-  let pageHtml='<div class="page">';
-  let onPage=0;
-  const bigQ=['vigenere','porta','hill2','hill3','morbit','pollux'];
-
-  problems.forEach((p,idx) => {
-    pageHtml += buildPrintQ(p, idx+1);
-    onPage++;
-    const needsNewPage = bigQ.includes(p.type) || onPage>=2;
-    if (needsNewPage && idx < problems.length-1) {
-      pageHtml+='</div><div class="page">';
-      onPage=0;
+    html { background: #d0d0d0; }
+    body {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10pt;
+      color: #000;
+      background: transparent;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      margin: 0; padding: 0;
     }
-  });
-  pageHtml+='</div>';
-  html+=pageHtml;
 
-  // Reference tables page
-  html+=`<div class="page">
-    <h1 style="font-size:16pt;margin-bottom:12px;">REFERENCE TABLES</h1>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
-      <div>
-        <div style="font-size:9pt;font-weight:700;letter-spacing:2px;margin-bottom:4px;">ALPHABET NUMBERS</div>
-        <table class="freq-t"><thead><tr>${ALPHABET.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead>
-        <tbody><tr>${ALPHABET.split('').map((_,i)=>`<td>${i}</td>`).join('')}</tr></tbody></table>
-      </div>
-      <div>
-        <div style="font-size:9pt;font-weight:700;letter-spacing:2px;margin-bottom:4px;">ATBASH</div>
-        <table class="freq-t"><thead><tr>${ALPHABET.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead>
-        <tbody><tr>${ALPHABET.split('').map((_,i)=>`<td>${ALPHABET[25-i]}</td>`).join('')}</tr></tbody></table>
-      </div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:9pt;font-weight:700;letter-spacing:2px;margin-bottom:4px;">AFFINE det(A)⁻¹ TABLE (mod 26)</div>
-      <table class="freq-t"><thead><tr><th>a</th>${[1,3,5,7,9,11,15,17,19,21,23,25].map(v=>`<th>${v}</th>`).join('')}</tr></thead>
-      <tbody><tr><td style="font-weight:700;">a⁻¹</td>${[1,9,21,15,3,19,7,23,11,5,17,25].map(v=>`<td>${v}</td>`).join('')}</tr></tbody></table>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:9pt;font-weight:700;letter-spacing:2px;margin-bottom:4px;">BACONIAN TABLE (24-LETTER FORM)</div>
-      <div class="bac-t">${Object.entries(Baconian.TABLE).map(([k,v])=>`<div class="bac-entry"><span class="bac-l">${k}</span><span>${v}</span></div>`).join('')}</div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:9pt;font-weight:700;letter-spacing:2px;margin-bottom:4px;">MORSE CODE</div>
-      <div class="morse-ref">${Object.entries(MORSE_TABLE).map(([k,v])=>`<div class="morse-e"><span class="morse-l">${k}</span><span>${v}</span></div>`).join('')}</div>
-    </div>
-    <div style="margin-bottom:10px;">
-      <div style="font-size:9pt;font-weight:700;letter-spacing:2px;margin-bottom:4px;">PORTA TABLE</div>
-      <table class="port-t"><thead><tr><th>Keys</th>${'ABCDEFGHIJKLM'.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead>
-      <tbody>${Porta.PORTA_TABLE.map(r=>`<tr><th>${r.keys}</th>${r.cipher.split('').map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>
-    </div>
-  </div>`;
+    /* Scaler: JS sets --scale and we transform the whole print area */
+    #scale-root {
+      transform-origin: top center;
+      transform: scale(var(--scale, 1));
+      width: ${PAGE_W}px;
+      margin: 0 auto;
+    }
+    #print-wrap {
+      width: ${PAGE_W}px;
+      background: #d0d0d0;
+      padding: 24px 0;
+    }
 
-  // Answer key
-  html+=`<div class="page"><h1 style="font-size:16pt;margin-bottom:12px;">ANSWER KEY</h1>`;
-  problems.forEach((p,i) => {
-    html+=`<div style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #ddd;">
-      <strong>Q${i+1}. ${p.cipherMeta.name}</strong><br>
-      <span style="font-family:'Courier Prime',monospace;font-size:12pt;font-weight:700;letter-spacing:2px;">${(p.plaintext||p.problem?.equation||'').toUpperCase()}</span>`;
-    if (p.type==='caesar') html+=` &nbsp;<span style="font-size:9pt;">[Shift: ${p.key}]</span>`;
-    else if (p.type==='affine') html+=` &nbsp;<span style="font-size:9pt;">[a=${p.key.a}, b=${p.key.b}]</span>`;
-    else if (p.type==='vigenere'||p.type==='porta') html+=` &nbsp;<span style="font-size:9pt;">[Key: ${p.key}]</span>`;
-    else if (p.type==='railfence') html+=` &nbsp;<span style="font-size:9pt;">[Rails: ${p.key}]</span>`;
-    else if (p.type==='morbit') html+=`<br><span style="font-size:8pt;">${Morbit.PAIRS.map(pair=>`${pair}=${p.key[pair]}`).join(' ')}</span>`;
-    else if (p.type==='pollux') html+=`<br><span style="font-size:8pt;">Dots:${p.key.dots.join(',')} Dashes:${p.key.dashes.join(',')} Spaces:${p.key.spaces.join(',')}</span>`;
-    else if (p.type==='cryptarithm'&&p.problem.solution) html+=`<br><span style="font-size:9pt;">${Object.entries(p.problem.solution).map(([k,v])=>`${k}=${v}`).join(' ')}</span>`;
-    html+='</div>';
+    /* Each page is a fixed-size white card */
+    .page {
+      width: ${PAGE_W}px;
+      min-height: ${PAGE_H}px;
+      padding: ${PAD_H}px ${PAD_W}px;
+      background: #fff;
+      margin: 0 auto 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+      overflow: hidden;
+      position: relative;
+    }
+    .page:last-child { margin-bottom: 0; }
+
+    /* ---- Typography ---- */
+    h1 { font-family: 'Oswald', sans-serif; font-size: 20pt; font-weight: 700; letter-spacing: 5px; text-align: center; line-height: 1.2; }
+    .sub { text-align: center; font-size: 9pt; letter-spacing: 3px; margin-bottom: 4px; }
+
+    .info-row { display: flex; gap: 16px; margin: 8px 0 12px; font-size: 9pt; border-top: 2px solid #000; padding-top: 6px; }
+    .info-field { display: flex; align-items: baseline; gap: 4px; flex: 1; }
+    .info-field span { border-bottom: 1px solid #000; flex: 1; height: 16px; display: inline-block; }
+
+    /* ---- Score table ---- */
+    .score-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin-bottom: 12px; }
+    .score-table th, .score-table td { border: 1px solid #999; padding: 2px 6px; }
+    .score-table th { background: #f0f0f0; }
+
+    /* ---- Question blocks ---- */
+    .q-block { margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #ccc; }
+    .q-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+    .q-num { font-family: 'Oswald', sans-serif; font-size: 12pt; font-weight: 700; letter-spacing: 2px; }
+    .q-pts { font-size: 8pt; font-style: italic; }
+    .q-type { font-size: 7pt; letter-spacing: 1px; color: #555; margin-bottom: 4px; text-transform: uppercase; }
+
+    /* ---- Cipher text ---- */
+    .ct     { font-size: 12pt; font-weight: 700; letter-spacing: 2px; line-height: 1.85; word-spacing: 8px; margin: 4px 0; word-break: break-word; }
+    .ct-grp { font-size: 12pt; font-weight: 700; letter-spacing: 2px; line-height: 1.85; word-break: break-all; margin: 4px 0; }
+    .ct-num { font-size: 10.5pt; font-weight: 700; letter-spacing: 2px; margin: 4px 0; word-break: break-all; line-height: 1.8; }
+
+    /* ---- Answer line ---- */
+    .ans-line { border-bottom: 1px solid #000; height: 20px; width: 100%; margin: 4px 0; }
+
+    /* ---- Frequency + substitution tables ---- */
+    /* 26 letters + 1 label col = 27 cols. Page content width = 682px. 682/27 = 25.2px per col */
+    .alpha-table { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: 7pt; margin: 3px 0; }
+    .alpha-table th, .alpha-table td { border: 1px solid #ccc; text-align: center; padding: 0; overflow: hidden; white-space: nowrap; }
+    .alpha-table th { background: #f0f0f0; font-weight: 700; height: 16px; }
+    .alpha-table .data-row td { height: 18px; }
+    .alpha-table .lbl-col { width: 22px; background: #f5f5f5; font-size: 6pt; font-weight: 700; }
+    .alpha-table .letter-col { width: 25px; }
+
+    /* ---- Decoded blanks ---- */
+    .decoded-row { font-size: 11pt; letter-spacing: 3px; color: #ccc; line-height: 1.85; word-spacing: 8px; margin: 2px 0; word-break: break-word; }
+
+    /* ---- Matrix ---- */
+    .matrix-wrap { display: flex; gap: 24px; align-items: flex-start; margin: 5px 0; flex-wrap: wrap; }
+    .matrix-item { display: flex; flex-direction: column; }
+    .matrix-label { font-size: 7pt; color: #444; margin-bottom: 2px; }
+    .matrix { border-left: 2.5px solid #000; border-right: 2.5px solid #000; padding: 5px 12px; display: inline-flex; flex-direction: column; gap: 4px; }
+    .mrow { display: flex; gap: 14px; }
+    .mcell { width: 22px; text-align: center; font-weight: 700; font-size: 10pt; }
+    .det-ref { font-size: 6pt; color: #666; margin: 2px 0 3px; }
+
+    /* ---- Porta table ---- */
+    .port-t { border-collapse: collapse; font-size: 7pt; table-layout: fixed; }
+    .port-t th, .port-t td { border: 1px solid #ccc; width: 18px; height: 15px; text-align: center; padding: 0; }
+    .port-t th { background: #f0f0f0; }
+
+    /* ---- Baconian ---- */
+    .bac-ref { display: grid; grid-template-columns: repeat(7, auto); gap: 2px 10px; font-size: 7.5pt; margin: 4px 0; }
+    .bac-entry { display: flex; gap: 5px; }
+    .bac-l { font-weight: 700; min-width: 16px; }
+
+    /* ---- Morse ---- */
+    .morse-ref { display: grid; grid-template-columns: repeat(7, auto); gap: 1px 8px; font-size: 7pt; }
+    .morse-e { display: flex; gap: 3px; }
+    .morse-l { font-weight: 700; min-width: 12px; }
+
+    /* ---- Polybius ---- */
+    .poly-t { border-collapse: collapse; font-size: 8pt; table-layout: fixed; }
+    .poly-t th, .poly-t td { border: 1px solid #aaa; width: 22px; height: 20px; text-align: center; padding: 0; font-weight: 700; }
+    .poly-t th { background: #f0f0f0; }
+
+    /* ---- Reference page ---- */
+    .ref-lbl { font-size: 7.5pt; font-weight: 700; letter-spacing: 2px; margin: 10px 0 2px; text-transform: uppercase; border-bottom: 1px solid #bbb; padding-bottom: 1px; }
+    .ref-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+
+    /* ---- Answer key ---- */
+    .ak-item { margin-bottom: 7px; padding-bottom: 5px; border-bottom: 1px solid #ddd; }
+    .ak-pt { font-size: 10.5pt; font-weight: 700; letter-spacing: 2px; font-family: 'Courier Prime', monospace; }
+
+    /* ===================== PRINT OVERRIDES ===================== */
+    @media print {
+      html { background: #fff !important; }
+      body { background: #fff !important; }
+      #scale-root { transform: none !important; width: 100% !important; }
+      #print-wrap { background: #fff !important; padding: 0 !important; width: 100% !important; }
+      .page {
+        width: 100% !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        page-break-after: always;
+        break-after: page;
+      }
+      .page:last-child { page-break-after: avoid; break-after: avoid; }
+      .no-print { display: none !important; }
+    }
+  `;
+
+  const scaleJS = `
+    (function() {
+      function applyScale() {
+        var root = document.getElementById('scale-root');
+        if (!root) return;
+        var vw = window.innerWidth || document.documentElement.clientWidth;
+        var pageW = ${PAGE_W};
+        var margin = 32; // px breathing room on each side
+        var available = vw - margin * 2;
+        var scale = available < pageW ? (available / pageW) : 1;
+        root.style.setProperty('--scale', scale);
+        // Adjust body height to match scaled content
+        var wrap = document.getElementById('print-wrap');
+        if (wrap) {
+          document.body.style.minHeight = (wrap.offsetHeight * scale + 48) + 'px';
+        }
+      }
+      window.addEventListener('load', applyScale);
+      window.addEventListener('resize', applyScale);
+    })();
+  `;
+
+  let total = 0;
+  problems.forEach(p => { total += p.cipherMeta.pts; });
+
+  // Shared alpha table builder
+  function alphaTable(headerLabel, dataLabel, dataFn) {
+    const cols = ALPHABET.split('').map(c => `<col class="letter-col">`).join('');
+    const ths  = ALPHABET.split('').map(c => `<th>${c}</th>`).join('');
+    const tds  = ALPHABET.split('').map(c => `<td>${dataFn(c)}</td>`).join('');
+    return `<table class="alpha-table">
+      <colgroup><col class="lbl-col">${cols}</colgroup>
+      <thead><tr><th class="lbl-col">${headerLabel}</th>${ths}</tr></thead>
+      <tbody><tr class="data-row"><td class="lbl-col">${dataLabel}</td>${tds}</tr></tbody>
+    </table>`;
+  }
+
+  const freqTable = (ct) => {
+    const freq = letterFreq(ct);
+    return alphaTable('F', '', c => freq[c] || '');
+  };
+  const subTable = () => alphaTable('CT→', 'PT', () => '');
+
+  let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CodeBusters Practice Test — ${today}</title>
+  <style>${css}</style>
+</head>
+<body>
+<div id="scale-root">
+<div id="print-wrap">`;
+
+  /* ---- COVER PAGE ---- */
+  html += `<div class="page">
+  <h1>CODEBUSTERS</h1>
+  <div class="sub">DIVISION C &nbsp;|&nbsp; PRACTICE TEST &nbsp;|&nbsp; ${today}</div>
+  <div class="info-row">
+    <div class="info-field">Team: <span></span></div>
+    <div class="info-field" style="max-width:140px;">Time: <span></span></div>
+    <div class="info-field" style="max-width:140px;">Score: <span></span></div>
+  </div>
+  <p style="font-size:8.5pt;margin-bottom:12px;line-height:1.5;"><strong>Instructions:</strong> Decode each cipher as directed. Show all work. No letter maps to itself in substitution ciphers. Up to 2 wrong letters on Aristocrats/Patristocrats still earn partial credit. A non-scientific calculator may be used for math ciphers.</p>
+  <table class="score-table">
+    <thead><tr><th>#</th><th>Cipher</th><th>Type</th><th style="text-align:center;">Points</th><th style="text-align:center;">Score</th></tr></thead>
+    <tbody>`;
+
+  problems.forEach((p, i) => {
+    html += `<tr><td>${i+1}</td><td>${p.cipherMeta.name}</td><td style="font-size:7pt;">${p.cipherMeta.type}</td><td style="text-align:center;">${p.cipherMeta.pts}</td><td></td></tr>`;
   });
-  html+='</div></body></html>';
+  html += `<tr><td colspan="3" style="text-align:right;font-weight:700;">TOTAL</td><td style="text-align:center;font-weight:700;">${total}</td><td></td></tr>
+    </tbody>
+  </table>
+</div>`;
+
+  /* ---- QUESTION PAGES ---- */
+  // Big questions get their own page; small ones pack 2 per page
+  const BIG = new Set(['porta','hill2','hill3','frac-morse','nihilist','xenocrypt','columnar','checkerboard']);
+  let pageOpen = false;
+  let onPage = 0;
+
+  problems.forEach((p, idx) => {
+    const big = BIG.has(p.type);
+    if (!pageOpen) { html += '<div class="page">'; pageOpen = true; onPage = 0; }
+    else if (big || onPage >= 2) { html += '</div><div class="page">'; onPage = 0; }
+    html += buildPrintQ(p, idx + 1, freqTable, subTable);
+    onPage++;
+    if (big) { html += '</div>'; pageOpen = false; }
+  });
+  if (pageOpen) { html += '</div>'; pageOpen = false; }
+
+  /* ---- REFERENCE PAGE ---- */
+  html += `<div class="page">
+  <h1 style="font-size:14pt;margin-bottom:4px;">REFERENCE TABLES</h1>
+
+  <div class="ref-lbl">Alphabet Numbers (A=0 … Z=25)</div>
+  ${alphaTable('', '#', (c) => ALPHABET.indexOf(c))}
+
+  <div class="ref-cols">
+    <div>
+      <div class="ref-lbl">Baconian (24-letter: I=J, U=V)</div>
+      <div class="bac-ref">${Object.entries(Baconian.TABLE).map(([k,v])=>`<div class="bac-entry"><span class="bac-l">${k}</span><span>${v}</span></div>`).join('')}</div>
+    </div>
+    <div>
+      <div class="ref-lbl">Morse Code</div>
+      <div class="morse-ref">${Object.entries(MORSE_TABLE).filter(([k])=>k>='A'&&k<='Z').map(([k,v])=>`<div class="morse-e"><span class="morse-l">${k}</span><span>${v}</span></div>`).join('')}</div>
+    </div>
+  </div>
+
+  <div class="ref-lbl">Porta Table</div>
+  <table class="port-t"><thead><tr><th>Keys</th>${'ABCDEFGHIJKLM'.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+  <tbody>${Porta.PORTA_TABLE.map(r=>`<tr><th>${r.keys}</th>${r.cipher.split('').map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>
+
+  <div class="ref-lbl">English Letter Frequency (high → low)</div>
+  <div style="font-size:9pt;letter-spacing:3px;font-family:'Courier Prime',monospace;line-height:1.8;">E T A O I N S H R D L U C M F W Y P V B G K J Q X Z</div>
+
+  <div class="ref-lbl">Spanish Letter Frequency (Xenocrypt, high → low)</div>
+  <div style="font-size:9pt;letter-spacing:3px;font-family:'Courier Prime',monospace;line-height:1.8;">E A O S N R I L D T U C M P B H Q Y V G F Z J X K W</div>
+</div>`;
+
+  /* ---- ANSWER KEY ---- */
+  html += `<div class="page"><h1 style="font-size:14pt;margin-bottom:8px;">ANSWER KEY</h1>`;
+  problems.forEach((p, i) => {
+    html += `<div class="ak-item"><strong>Q${i+1}. ${p.cipherMeta.name}</strong><br>
+      <span class="ak-pt">${(p.plaintext || p.problem?.equation || '').toUpperCase()}</span>`;
+    if ((p.type==='aristocrat'||p.type==='patristocrat'||p.type==='xenocrypt') && p.keyword) {
+      html += ` <span style="font-size:8pt;color:#555;">[Keyword: ${p.keyword} / ${(p.keyType||'').toUpperCase()}]</span>`;
+    } else if (p.type==='porta') {
+      html += ` <span style="font-size:8pt;color:#555;">[Key: ${p.key}]</span>`;
+    } else if (p.type==='hill2'||p.type==='hill3') {
+      html += ` <span style="font-size:8pt;color:#555;">[Key: ${p.key.word}]</span>`;
+    } else if (p.type==='nihilist') {
+      html += ` <span style="font-size:8pt;color:#555;">[Sq: ${p.key.sqKw} / Msg: ${p.key.msgKw}]</span>`;
+    } else if (p.type==='columnar') {
+      html += ` <span style="font-size:8pt;color:#555;">[Keyword: ${p.key.keyword}]</span>`;
+    } else if (p.type==='checkerboard') {
+      html += ` <span style="font-size:8pt;color:#555;">[Keyword: ${p.key.keyword}]</span>`;
+    } else if (p.type==='frac-morse') {
+      html += ` <span style="font-size:8pt;color:#555;">[Keyword: ${p.key.keyword}]</span>`;
+    } else if (p.type==='cryptarithm' && p.problem && p.problem.solution) {
+      html += `<br><span style="font-size:7.5pt;color:#555;">${Object.entries(p.problem.solution).map(([k,v])=>`${k}=${v}`).join('  ')}</span>`;
+    }
+    html += '</div>';
+  });
+  html += `</div>
+
+</div><!-- #print-wrap -->
+</div><!-- #scale-root -->
+<script>${scaleJS}</script>
+</body></html>`;
   return html;
 }
 
-function buildPrintQ(p, num) {
-  const ct = p.ciphertext||'';
-  const freq = p.plaintext ? letterFreq(ct) : {};
-  const fhdr = ALPHABET.split('').map(c=>`<th>${c}</th>`).join('');
-  const fvals = ALPHABET.split('').map(c=>`<td>${freq[c]||''}</td>`).join('');
-  const freqT = `<table class="freq-t" style="margin:4px 0;"><thead><tr><th style="background:#e8e8e8">F</th>${fhdr}</tr></thead><tbody><tr><td></td>${fvals}</tr></tbody></table>`;
-  const subT = `<table class="sub-t" style="margin:4px 0;"><thead><tr><th>→</th>${ALPHABET.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody><tr><td style="background:#f0f0f0;font-size:7pt;">PT</td>${ALPHABET.split('').map(()=>`<td></td>`).join('')}</tr></tbody></table>`;
+function buildPrintQ(p, num, freqTable, subTable) {
+  const ct = p.ciphertext || '';
+  const decodedBlanks = ct.replace(/[^A-Z ]/g,'').split('').map(c => c === ' ' ? '\u00a0\u00a0' : '_').join('');
 
-  let inner='';
-  if (p.type==='caesar') {
-    inner=`<div class="q-type">Monoalphabetic Shift</div><div style="font-size:9pt;margin-bottom:4px;">Find the shift and decode.</div>
-    <div class="ct">${ct}</div>${freqT}
-    <div style="font-size:9pt;margin-top:6px;">Shift: ______ &nbsp;&nbsp;&nbsp; Plaintext:</div><div class="ans-line"></div>`;
-  } else if (p.type==='atbash') {
-    inner=`<div class="q-type">Monoalphabetic</div><div class="ct">${ct}</div>
-    <div style="font-size:9pt;margin-top:6px;">Plaintext:</div><div class="ans-line"></div>`;
-  } else if (p.type==='aristocrat') {
-    inner=`<div class="q-type">Monoalphabetic — Alphabet: ${(p.keyType||'RANDOM').toUpperCase()}</div>
-    <div class="ct">${ct}</div>${freqT}${subT}
-    <div style="font-size:8pt;margin-top:4px;letter-spacing:1px;">DECODED:</div>
-    <div class="ct" style="font-weight:400;letter-spacing:3px;color:#aaa;">${ct.replace(/[^A-Z ]/g,'').split('').map(c=>c===' '?'&nbsp;&nbsp;':'_').join('')}</div>`;
-  } else if (p.type==='patristocrat') {
-    inner=`<div class="q-type">Monoalphabetic No Spaces — Alphabet: ${(p.keyType||'RANDOM').toUpperCase()}</div>
-    <div class="ct-grp">${ct}</div>${freqT}${subT}
-    <div class="ans-line"></div><div class="ans-line"></div>`;
-  } else if (p.type==='affine') {
-    inner=`<div class="q-type">Monoalphabetic Math &nbsp;|&nbsp; E(x) = (${p.key.a}x + ${p.key.b}) mod 26</div>
-    <div class="ct">${ct}</div>${freqT}${subT}
-    <div class="ans-line"></div>`;
-  } else if (p.type==='vigenere') {
-    const hw=(p.plaintext||'').split(' ').sort((a,b)=>b.length-a.length)[0]?.toUpperCase()||'';
-    const ptns=(p.plaintext||'').toUpperCase().replace(/[^A-Z]/g,'');
-    const ctns=ct.replace(/[^A-Z]/g,'');
-    const hi=ptns.indexOf(hw.replace(/[^A-Z]/g,''));
-    const hct=hi>=0?ctns.slice(hi,hi+hw.length):'?';
-    inner=`<div class="q-type">Polyalphabetic &nbsp;|&nbsp; Key Length: ${(p.key||'').length} &nbsp;|&nbsp; Crib: "${hw}"→"${hct}"</div>
+  let inner = '';
+
+  /* ---- ARISTOCRAT / XENOCRYPT ---- */
+  if (p.type === 'aristocrat' || p.type === 'xenocrypt') {
+    const lang = p.type === 'xenocrypt' ? 'SPANISH — ' : '';
+    inner = `<div class="q-type">${lang}MONOALPHABETIC SUBSTITUTION — ALPHABET: ${(p.keyType||'RANDOM').toUpperCase()}</div>
     <div class="ct">${ct}</div>
-    <div style="font-size:9pt;margin:4px 0;">Key: _______________________</div>
+    ${freqTable(ct)}
+    ${subTable()}
+    <div style="font-size:7pt;margin-top:3px;letter-spacing:1px;">DECODED:</div>
+    <div class="decoded-row">${decodedBlanks}</div>`;
+    if (p.type === 'xenocrypt') {
+      inner += `<div style="font-size:6.5pt;color:#666;margin-top:3px;">Spanish freq: E A O S N R I L D T U C M P B H &nbsp;|&nbsp; Common: DE LA EL EN LOS ES UN QUE CON POR</div>`;
+    }
+
+  /* ---- PATRISTOCRAT ---- */
+  } else if (p.type === 'patristocrat') {
+    inner = `<div class="q-type">MONOALPHABETIC — NO SPACES — ALPHABET: ${(p.keyType||'RANDOM').toUpperCase()}</div>
+    <div class="ct-grp">${ct}</div>
+    ${freqTable(ct)}
+    ${subTable()}
     <div class="ans-line"></div>
-    <table class="vig-t" style="margin-top:8px;"><thead><tr><th></th>${ALPHABET.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>
-    ${ALPHABET.split('').map(r=>`<tr><th>${r}</th>${Array.from({length:26},(_,i)=>`<td>${numToChar(charToNum(r)+i)}</td>`).join('')}</tr>`).join('')}
-    </tbody></table>`;
-  } else if (p.type==='porta') {
-    inner=`<div class="q-type">Polyalphabetic &nbsp;|&nbsp; Key Length: ${(p.key||'').length}</div>
+    <div class="ans-line" style="margin-top:8px;"></div>`;
+
+  /* ---- PORTA ---- */
+  } else if (p.type === 'porta') {
+    inner = `<div class="q-type">POLYALPHABETIC — KEY LENGTH: ${(p.key||'').length}</div>
     <div class="ct">${ct}</div>
-    <div style="font-size:9pt;margin:4px 0;">Key: _______________________</div>
+    <div style="font-size:8.5pt;margin:4px 0;">Key: _______________________________</div>
     <div class="ans-line"></div>
-    <table class="port-t" style="margin-top:6px;"><thead><tr><th>Keys</th>${'ABCDEFGHIJKLM'.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead>
-    <tbody>${Porta.PORTA_TABLE.map(r=>`<tr><th>${r.keys}</th>${r.cipher.split('').map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-  } else if (p.type==='hill2') {
-    const inv=Hill2.getInverse(p.key.key);
-    inner=`<div class="q-type">Polyalphabetic Math</div>
+    <div style="margin-top:8px;">
+      <table class="port-t"><thead><tr><th>Key</th>${'ABCDEFGHIJKLM'.split('').map(c=>`<th>${c}</th>`).join('')}</tr></thead>
+      <tbody>${Porta.PORTA_TABLE.map(r=>`<tr><th>${r.keys}</th>${r.cipher.split('').map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>
+    </div>`;
+
+  /* ---- HILL 2×2 ---- */
+  } else if (p.type === 'hill2') {
+    const inv = p.key.inv || Hill2.getInverse(p.key.key);
+    inner = `<div class="q-type">POLYALPHABETIC MATH — HILL 2×2 — KEY WORD: ${p.key.word}</div>
     <div class="ct-num">${ct}</div>
-    <div style="display:flex;gap:16px;align-items:center;margin:6px 0;flex-wrap:wrap;">
-      <div><div style="font-size:8pt;">Key K:</div><div class="matrix"><div class="mrow"><div class="mcell">${p.key.key[0][0]}</div><div class="mcell">${p.key.key[0][1]}</div></div><div class="mrow"><div class="mcell">${p.key.key[1][0]}</div><div class="mcell">${p.key.key[1][1]}</div></div></div></div>
-      <div><div style="font-size:8pt;">K⁻¹ (decrypt with this):</div><div class="matrix"><div class="mrow"><div class="mcell">${inv[0][0]}</div><div class="mcell">${inv[0][1]}</div></div><div class="mrow"><div class="mcell">${inv[1][0]}</div><div class="mcell">${inv[1][1]}</div></div></div></div>
+    <div class="matrix-wrap">
+      <div class="matrix-item">
+        <div class="matrix-label">Key K &nbsp;(${p.key.word}):</div>
+        <div class="matrix">
+          <div class="mrow">${p.key.key[0].map(v=>`<div class="mcell">${v}</div>`).join('')}</div>
+          <div class="mrow">${p.key.key[1].map(v=>`<div class="mcell">${v}</div>`).join('')}</div>
+        </div>
+      </div>
+      <div class="matrix-item">
+        <div class="matrix-label">K&#8315;&#185; — decrypt with this:</div>
+        <div class="matrix">
+          <div class="mrow">${inv[0].map(v=>`<div class="mcell">${v}</div>`).join('')}</div>
+          <div class="mrow">${inv[1].map(v=>`<div class="mcell">${v}</div>`).join('')}</div>
+        </div>
+      </div>
     </div>
-    <div style="font-size:7pt;margin-bottom:4px;">det⁻¹: 1↔1 3↔9 5↔21 7↔15 9↔3 11↔19 15↔7 17↔23 19↔11 21↔5 23↔17 25↔25</div>
+    <div class="det-ref">det&#8315;&#185; mod 26:&nbsp; 1&#8596;1 &nbsp;3&#8596;9 &nbsp;5&#8596;21 &nbsp;7&#8596;15 &nbsp;9&#8596;3 &nbsp;11&#8596;19 &nbsp;15&#8596;7 &nbsp;17&#8596;23 &nbsp;19&#8596;11 &nbsp;21&#8596;5 &nbsp;23&#8596;17 &nbsp;25&#8596;25</div>
     <div class="ans-line"></div>`;
-  } else if (p.type==='hill3') {
-    inner=`<div class="q-type">Polyalphabetic Math</div>
+
+  /* ---- HILL 3×3 ---- */
+  } else if (p.type === 'hill3') {
+    inner = `<div class="q-type">POLYALPHABETIC MATH — HILL 3×3 — KEY WORD: ${p.key.word}</div>
     <div class="ct-num">${ct}</div>
-    <div style="margin:6px 0;"><div style="font-size:8pt;">K⁻¹ (decrypt with this):</div>
-    <div class="matrix">${p.key.inv.map(r=>`<div class="mrow">${r.map(c=>`<div class="mcell">${c}</div>`).join('')}</div>`).join('')}</div></div>
-    <div class="ans-line"></div>`;
-  } else if (p.type==='baconian') {
-    const groups=ct.split(' ');
-    const st=p.baconStyle||0;
-    let disp='';
-    if(st===0) disp=`<div style="font-family:'Courier Prime',monospace;font-size:12pt;letter-spacing:4px;line-height:2.2;">${groups.join('&nbsp; ')}</div>`;
-    else if(st===1) disp=`<div style="font-size:16pt;letter-spacing:5px;line-height:2.4;">${groups.map(g=>g.split('').map(c=>c==='A'?'▼':'▲').join('')).join('&nbsp; ')}</div><p style="font-size:8pt;">(▲=B, ▼=A)</p>`;
-    else if(st===2){
-      const cov='THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG AND THE CAT SAT ON THE MAT';
-      const cl=cov.replace(/\s/g,'').split('');const cd=groups.join('').split('');
-      let out='';let ci=0;
-      for(let i=0;i<cov.length;i++){if(cov[i]===' '){out+=' ';continue;}out+=ci<cd.length?(cd[ci]==='B'?`<strong>${cov[i]}</strong>`:`${cov[i]}`):cov[i];ci++;}
-      disp=`<div style="font-family:'Courier Prime',monospace;font-size:11pt;line-height:2;">${out}</div><p style="font-size:7pt;font-style:italic;">Bold=B, Regular=A</p>`;
-    } else disp=`<div style="font-family:'Courier Prime',monospace;font-size:12pt;letter-spacing:4px;line-height:2.2;">${groups.map(g=>g.split('').map(c=>c==='A'?'0':'1').join('')).join('&nbsp; ')}</div><p style="font-size:8pt;">(1=B, 0=A)</p>`;
-    inner=`<div class="q-type">Steganography — 24-letter form (I=J, U=V)</div>${disp}
-    <div class="ans-line"></div>`;
-  } else if (p.type==='morbit') {
-    inner=`<div class="q-type">Tomogrammic — Morse code pairs as digits 1–9</div>
-    <div class="ct-num" style="letter-spacing:4px;">${ct}</div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;">
-      ${['1','2','3','4','5','6','7','8','9'].map(d=>`<div style="border:1px solid #999;"><div style="text-align:center;font-weight:700;border-bottom:1px solid #999;padding:1px 4px;">${d}</div><div style="height:16px;width:34px;"></div></div>`).join('')}
+    <div class="matrix-wrap">
+      <div class="matrix-item">
+        <div class="matrix-label">Key K &nbsp;(${p.key.word}):</div>
+        <div class="matrix">${p.key.key.map(r=>`<div class="mrow">${r.map(v=>`<div class="mcell">${v}</div>`).join('')}</div>`).join('')}</div>
+      </div>
+      <div class="matrix-item">
+        <div class="matrix-label">K&#8315;&#185; — decrypt with this:</div>
+        <div class="matrix">${p.key.inv.map(r=>`<div class="mrow">${r.map(v=>`<div class="mcell">${v}</div>`).join('')}</div>`).join('')}</div>
+      </div>
     </div>
-    <div class="morse-ref" style="font-size:8pt;">${Object.entries(MORSE_TABLE).map(([k,v])=>`<div class="morse-e"><span class="morse-l">${k}</span><span>${v}</span></div>`).join('')}</div>
     <div class="ans-line"></div>`;
-  } else if (p.type==='pollux') {
-    inner=`<div class="q-type">Tomogrammic — single Morse symbols as digits 0–9</div>
-    <div class="ct-num" style="letter-spacing:3px;word-break:break-all;">${ct}</div>
-    <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0;">
-      ${['0','1','2','3','4','5','6','7','8','9'].map(d=>`<div style="border:1px solid #999;"><div style="text-align:center;font-weight:700;border-bottom:1px solid #999;padding:1px 4px;">${d}</div><div style="height:16px;width:28px;"></div></div>`).join('')}
+
+  /* ---- BACONIAN ---- */
+  } else if (p.type === 'baconian') {
+    const groups = ct.split(' ');
+    const st = p.baconStyle || 0;
+    let disp = '';
+    if (st === 0) {
+      disp = `<div style="font-size:11pt;letter-spacing:4px;line-height:2;">${groups.join('&nbsp;&nbsp;')}</div>`;
+    } else if (st === 1) {
+      disp = `<div style="font-size:15pt;letter-spacing:5px;line-height:2.2;">${groups.map(g=>g.split('').map(c=>c==='A'?'&#9660;':'&#9650;').join('')).join('&nbsp;&nbsp;')}</div>
+        <div style="font-size:7pt;">(&#9650; = B &nbsp; &#9660; = A)</div>`;
+    } else if (st === 2) {
+      const cov = 'THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG AND THE CAT SAT ON THE MAT NEAR THE WALL BY THE OLD OAK TREE';
+      const cd = groups.join('').split(''); let ci = 0; let out = '';
+      for (let i = 0; i < cov.length; i++) {
+        if (cov[i] === ' ') { out += ' '; continue; }
+        out += ci < cd.length ? (cd[ci] === 'B' ? `<strong>${cov[i]}</strong>` : `${cov[i]}`) : cov[i]; ci++;
+      }
+      disp = `<div style="font-size:10pt;line-height:2;font-family:'Courier Prime',monospace;">${out}</div>
+        <div style="font-size:6.5pt;font-style:italic;">Bold = B &nbsp;|&nbsp; Regular = A</div>`;
+    } else {
+      disp = `<div style="font-size:11pt;letter-spacing:4px;line-height:2;">${groups.map(g=>g.split('').map(c=>c==='A'?'0':'1').join('')).join('&nbsp;&nbsp;')}</div>
+        <div style="font-size:7pt;">(1 = B &nbsp; 0 = A)</div>`;
+    }
+    inner = `<div class="q-type">STEGANOGRAPHY — BACONIAN 24-LETTER (I=J, U=V)</div>
+    ${disp}
+    <div class="bac-ref" style="margin-top:6px;">${Object.entries(Baconian.TABLE).map(([k,v])=>`<div class="bac-entry"><span class="bac-l">${k}</span><span>${v}</span></div>`).join('')}</div>
+    <div class="ans-line" style="margin-top:6px;"></div>`;
+
+  /* ---- FRACTIONATED MORSE ---- */
+  } else if (p.type === 'frac-morse') {
+    const crib = p.crib || '';
+    const cribMorse = crib.toUpperCase().split('').map(c => MORSE_TABLE[c]||'').join('X');
+    // Build trigraph lookup table from the key's encMap
+    const syms = ['.', '-', 'X'];
+    const hdrCols = syms.flatMap(b => syms.map(a => `<th style="width:18px;font-size:6pt;background:#f0f0f0;text-align:center;">${a}${b}_</th>`)).join('');
+    let tRows = '';
+    for (const c of syms) {
+      let cells = '';
+      for (const b of syms) for (const a of syms) {
+        const tri = a + b + c;
+        cells += `<td style="width:18px;height:14px;text-align:center;border:1px solid #ddd;font-size:7pt;">${(p.key && p.key.encMap && p.key.encMap[tri]) || '?'}</td>`;
+      }
+      tRows += `<tr><th style="width:20px;font-size:6pt;background:#f0f0f0;padding:0 2px;">${c}__</th>${cells}</tr>`;
+    }
+    inner = `<div class="q-type">FRACTIONATED MORSE — CRIB: "${crib}" &rarr; MORSE: ${cribMorse}X&hellip;</div>
+    <div class="ct-grp">${ct}</div>
+    <div style="margin:5px 0;">
+      <div style="font-size:6.5pt;font-weight:700;letter-spacing:1px;margin-bottom:2px;">TRIGRAPH TABLE (rows = 3rd symbol; cols = 1st+2nd)</div>
+      <table style="border-collapse:collapse;"><thead><tr><th style="width:20px;font-size:6pt;background:#f0f0f0;"></th>${hdrCols}</tr></thead><tbody>${tRows}</tbody></table>
     </div>
-    <div class="morse-ref" style="font-size:8pt;">${Object.entries(MORSE_TABLE).map(([k,v])=>`<div class="morse-e"><span class="morse-l">${k}</span><span>${v}</span></div>`).join('')}</div>
+    <div class="morse-ref">${Object.entries(MORSE_TABLE).filter(([k])=>k>='A'&&k<='Z').map(([k,v])=>`<div class="morse-e"><span class="morse-l">${k}</span><span>${v}</span></div>`).join('')}</div>
+    <div class="ans-line" style="margin-top:4px;"></div>`;
+
+  /* ---- NIHILIST ---- */
+  } else if (p.type === 'nihilist') {
+    const sqInfo = Nihilist.buildPolybiusKey(p.key.sqKw);
+    const cribWord = (p.plaintext || '').split(' ')[0] || '';
+    const cribNums = cribWord ? Nihilist.encrypt(cribWord, p.key).split(' ').slice(0, cribWord.replace(/[^A-Z]/gi,'').length).join(' ') : '';
+    let sqRows = '';
+    for (let r = 0; r < 5; r++) {
+      sqRows += `<tr><th>${r+1}</th>${sqInfo.sq[r].map(c=>`<td>${c}</td>`).join('')}</tr>`;
+    }
+    inner = `<div class="q-type">POLYALPHABETIC MATH — NIHILIST — SQ KEY: ${p.key.sqKw} — MSG KEY LENGTH: ${p.key.msgKw.length}</div>
+    <div class="ct-num">${ct}</div>
+    <div style="display:flex;gap:20px;align-items:flex-start;margin:5px 0;flex-wrap:wrap;">
+      <div>
+        <div style="font-size:7pt;font-weight:700;margin-bottom:2px;">POLYBIUS SQUARE (keyword: ${p.key.sqKw})</div>
+        <table class="poly-t"><thead><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
+        <tbody>${sqRows}</tbody></table>
+      </div>
+      <div style="font-size:8.5pt;padding-top:14px;">
+        Crib: <strong>${cribWord}</strong> &#8594; <strong>${cribNums}</strong><br>
+        Message keyword length: <strong>${p.key.msgKw.length}</strong>
+      </div>
+    </div>
+    <div style="font-size:8pt;margin:3px 0;">Message Keyword: _______________________</div>
     <div class="ans-line"></div>`;
-  } else if (p.type==='railfence') {
-    inner=`<div class="q-type">Transposition &nbsp;|&nbsp; Rails: ${p.key}</div>
-    <div class="ct-grp">${ct}</div><div class="ans-line"></div>`;
-  } else if (p.type==='cryptarithm') {
-    const lts=[...new Set(p.problem.equation.replace(/[^A-Z]/g,'').split(''))].sort();
-    inner=`<div class="q-type">Mathematical &nbsp;|&nbsp; Each letter = unique digit 0–9</div>
-    <div style="font-family:'Courier Prime',monospace;font-size:22pt;font-weight:700;letter-spacing:6px;text-align:center;padding:12px 0;">${p.problem.equation}</div>
-    <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;">
-      ${lts.map(l=>`<div style="border:1px solid #999;"><div style="text-align:center;font-weight:700;border-bottom:1px solid #999;padding:1px 6px;">${l}</div><div style="height:18px;width:22px;"></div></div>`).join('')}
+
+  /* ---- CHECKERBOARD ---- */
+  } else if (p.type === 'checkerboard') {
+    let sqRows = '';
+    for (let r = 0; r < 5; r++) {
+      sqRows += `<tr><th>${r+1}</th>${p.key.sq[r].map(c=>`<td>${c}</td>`).join('')}</tr>`;
+    }
+    inner = `<div class="q-type">POLYBIUS SQUARE — CHECKERBOARD — KEY: ${p.key.keyword}</div>
+    <div class="ct-num">${ct}</div>
+    <table class="poly-t" style="margin:5px 0;"><thead><tr><th></th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr></thead>
+    <tbody>${sqRows}</tbody></table>
+    <div class="ans-line"></div>`;
+
+  /* ---- COMPLETE COLUMNAR ---- */
+  } else if (p.type === 'columnar') {
+    const n = p.key.colOrder ? p.key.colOrder.length : (p.key.keyword||'').length;
+    const cribActual = (p.plaintext||'').toUpperCase().replace(/[^A-Z ]/g,'').slice(0, n + 1);
+    inner = `<div class="q-type">TRANSPOSITION — COMPLETE COLUMNAR — ${n} COLUMNS — CRIB: "${cribActual}"</div>
+    <div class="ct-grp">${ct}</div>
+    <div style="margin:5px 0;">
+      <div style="font-size:7pt;font-weight:700;margin-bottom:3px;">KEYWORD &amp; COLUMN READ ORDER (1 = first column read out)</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${(p.key.keyword||'').split('').map((c,i)=>`<div style="text-align:center;min-width:20px;"><div style="font-weight:700;font-size:13pt;font-family:'Courier Prime',monospace;">${c}</div><div style="font-size:8pt;color:#555;">${p.key.colOrder ? p.key.colOrder[i] : ''}</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="ans-line"></div>
+    <div class="ans-line" style="margin-top:8px;"></div>`;
+
+  /* ---- CRYPTARITHM ---- */
+  } else if (p.type === 'cryptarithm') {
+    const lts = [...new Set((p.problem.equation||'').replace(/[^A-Z]/g,'').split(''))].sort();
+    inner = `<div class="q-type">MATHEMATICAL — EACH LETTER = UNIQUE DIGIT 0–9, NO LEADING ZEROS</div>
+    <div style="font-size:20pt;font-weight:700;letter-spacing:6px;text-align:center;padding:10px 0;font-family:'Courier Prime',monospace;">${p.problem.equation}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;">
+      ${lts.map(l=>`<div style="border:1px solid #999;"><div style="font-weight:700;border-bottom:1px solid #999;padding:1px 8px;text-align:center;">${l}</div><div style="height:18px;width:24px;"></div></div>`).join('')}
     </div>`;
   }
 
   return `<div class="q-block">
-    <div class="q-header">
-      <span class="q-num">Q${num}. ${p.cipherMeta.name}</span>
-      <span class="q-pts">[${p.cipherMeta.pts} points]</span>
-    </div>
-    ${inner}
-  </div>`;
+  <div class="q-header">
+    <span class="q-num">Q${num}. ${p.cipherMeta.name}</span>
+    <span class="q-pts">[${p.cipherMeta.pts} pts]</span>
+  </div>
+  ${inner}
+</div>`;
 }
 
 // =============================================
 // INIT
 // =============================================
 window.addEventListener('DOMContentLoaded', () => {
-  loadCipher('caesar');
+  loadCipher('aristocrat');
 });
 
 // =============================================
@@ -1299,20 +1483,12 @@ window.addEventListener('DOMContentLoaded', () => {
 // =============================================
 function getCipherMetaCore(name) {
   const map = {
-    caesar:          { name:'Caesar Cipher',          type:'Monoalphabetic',       pts:200, desc:'Shift cipher — every letter moved by a fixed amount. Find the shift and decode.' },
-    atbash:          { name:'Atbash Cipher',           type:'Monoalphabetic',       pts:150, desc:'Reverse alphabet substitution. A↔Z, B↔Y, etc. Decode the cipher text.' },
     aristocrat:      { name:'Aristocrat',              type:'Monoalphabetic',       pts:200, desc:'Standard substitution cipher with word spaces preserved. No letter maps to itself.' },
-    'aristocrat-mis':{ name:'Aristocrat (Misspelled)', type:'Monoalphabetic',       pts:300, desc:'Like an Aristocrat but words may be misspelled or homophones substituted.' },
     patristocrat:    { name:'Patristocrat',            type:'Monoalphabetic',       pts:250, desc:'Like an Aristocrat but all spaces removed. Letters grouped in sets of 5.' },
-    affine:          { name:'Affine Cipher',           type:'Monoalphabetic Math',  pts:250, desc:'E(x) = (ax + b) mod 26. Keys a and b are given. Decode the cipher text.' },
-    vigenere:        { name:'Vigenère Cipher',         type:'Polyalphabetic',       pts:300, desc:'Repeating keyword cipher. Each letter shifted by the corresponding key letter.' },
     porta:           { name:'Porta Cipher',            type:'Polyalphabetic',       pts:300, desc:'Predecessor to Vigenère with 13 row mappings. Self-reciprocal cipher.' },
     hill2:           { name:'Hill 2×2 Cipher',         type:'Polyalphabetic Math',  pts:250, desc:'Matrix multiplication cipher. Decrypt using the provided inverse matrix.' },
     hill3:           { name:'Hill 3×3 Cipher',         type:'Polyalphabetic Math',  pts:300, desc:'3×3 matrix multiplication cipher. Decryption matrix provided.' },
     baconian:        { name:'Baconian Cipher',         type:'Steganography',        pts:200, desc:'Each letter encoded as 5 A/B characters. Presented with various symbol systems.' },
-    morbit:          { name:'Morbit Cipher',           type:'Tomogrammic',          pts:300, desc:'Morse code pairs encoded as single digits 1–9.' },
-    pollux:          { name:'Pollux Cipher',           type:'Tomogrammic',          pts:300, desc:'Single Morse symbols encoded as digits 0–9. Multiple digits per symbol.' },
-    railfence:       { name:'Rail Fence Cipher',       type:'Transposition',        pts:200, desc:'Letters written in zigzag pattern across N rails, then read row by row.' },
     cryptarithm:     { name:'Cryptarithm',             type:'Mathematical',         pts:300, desc:'Mathematical equation — each letter represents a unique digit 0–9.' },
   };
   return map[name] || { name: name, type: 'Unknown', pts: 200, desc: '' };
@@ -1324,7 +1500,6 @@ function getCipherMetaCore(name) {
 function getCipherMeta(name) {
   const extras = {
     xenocrypt:     { name:'Xenocrypt (Spanish)', type:'Monoalphabetic (Spanish)', pts:300, desc:'Spanish language Aristocrat encoded with K1 or K2 English keyword. Decode the Spanish message.' },
-    'porta-analysis':{ name:'Porta Cryptanalysis',type:'Polyalphabetic (Crib)',  pts:350, desc:'Porta cipher with a plaintext crib of at least 3 characters given. Find the key and decode.' },
     'frac-morse':  { name:'Fractionated Morse',  type:'Fractionated',            pts:350, desc:'Text converted to Morse, grouped in trigraphs, each encoded as a letter. A crib (4+ chars) is given.' },
     nihilist:      { name:'Nihilist Cipher',     type:'Polyalphabetic Math',     pts:300, desc:'Polybius square numbers added to repeating keyword numbers. Crib given (≤ keyword length).' },
     columnar:      { name:'Complete Columnar',   type:'Transposition',           pts:300, desc:'Text arranged in columns and read out in keyword-alphabetical order. Crib given (≥ columns–1 chars).' },
@@ -1347,21 +1522,6 @@ async function generateProblem(name) {
       const ct = Aristocrat.encrypt(quote, key.key||key);
       currentProblem = { type:'xenocrypt', plaintext:quote, ciphertext:ct,
         key:key.key||key, keyType:kr.type||kt, keyword:kr.keyword };
-      break;
-    }
-    case 'porta-analysis': {
-      const q = getRandomFallbackQuote();
-      const key = Porta.generateKey();
-      const ct = Porta.encrypt(q, key);
-      // crib: first word with 3+ chars
-      const cribWord = q.split(' ').find(w=>w.replace(/[^A-Z]/gi,'').length>=3) || q.split(' ')[0];
-      const cribClean = cribWord.replace(/[^A-Z]/gi,'');
-      const ptNoSp = q.toUpperCase().replace(/[^A-Z]/g,'');
-      const ctNoSp = ct.replace(/[^A-Z]/g,'');
-      const cribIdx = ptNoSp.indexOf(cribClean.toUpperCase());
-      const cribCT = cribIdx>=0 ? ctNoSp.slice(cribIdx,cribIdx+cribClean.length) : '???';
-      currentProblem = { type:'porta-analysis', plaintext:q, ciphertext:ct, key,
-        crib:cribClean, cribCT, cribIdx };
       break;
     }
     case 'frac-morse': {
@@ -1409,7 +1569,6 @@ function renderCurrentProblem() {
   if (!currentProblem) return;
   switch(currentProblem.type) {
     case 'xenocrypt':      renderXenocryptUI(); break;
-    case 'porta-analysis': renderPortaAnalysisUI(); break;
     case 'frac-morse':     renderFracMorseUI(); break;
     case 'nihilist':       renderNihilistUI(); break;
     case 'columnar':       renderColumnarUI(); break;
@@ -1662,7 +1821,7 @@ const _origCheckAnswer = checkAnswer;
 function checkAnswer() {
   if (!currentProblem) return;
   const p = currentProblem;
-  const newTypes = ['xenocrypt','porta-analysis','frac-morse','nihilist','columnar','checkerboard'];
+  const newTypes = ['xenocrypt','frac-morse','nihilist','columnar','checkerboard'];
   if (!newTypes.includes(p.type)) { _origCheckAnswer(); return; }
 
   let correct=false, msg='';
@@ -1680,18 +1839,6 @@ function checkAnswer() {
     });
     correct=right===pt.length;
     msg=correct?`✓ PERFECT! ${right}/${pt.length}`:`◑ ${right}/${pt.length} (${Math.round(right/pt.length*100)}%)`;
-  } else if (p.type==='porta-analysis') {
-    const inputs=[...document.querySelectorAll('.plain-input')];
-    const pt=p.plaintext.toUpperCase().replace(/[^A-Z]/g,'').split('');
-    let right=0;
-    inputs.forEach((inp,i)=>{
-      const val=inp.value.toUpperCase();
-      inp.classList.remove('correct','incorrect');
-      if(!val) return;
-      val===pt[i]?(right++,inp.classList.add('correct')):inp.classList.add('incorrect');
-    });
-    correct=right===pt.length;
-    msg=correct?'✓ CORRECT!':`◑ ${right}/${pt.length} (${Math.round(right/pt.length*100)}%)`;
   } else if (p.type==='frac-morse') {
     const m=compareAnswers(getVal('fracMorseAnswer'), p.plaintext.toUpperCase().replace(/[^A-Z ]/g,'').trim());
     correct=m>0.92; msg=correct?'✓ CORRECT!':m>0.7?`◑ CLOSE — ${Math.round(m*100)}%`:'✗ INCORRECT';
@@ -1717,7 +1864,7 @@ function checkAnswer() {
 function showAnswer() {
   if (!currentProblem) return;
   const p = currentProblem;
-  const newTypes = ['xenocrypt','porta-analysis','frac-morse','nihilist','columnar','checkerboard'];
+  const newTypes = ['xenocrypt','frac-morse','nihilist','columnar','checkerboard'];
   if (!newTypes.includes(p.type)) { showAnswerCore(); return; }
   stopTimer();
 
@@ -1726,8 +1873,6 @@ function showAnswer() {
   if (p.type==='xenocrypt') {
     html += `<div class="key-reveal-block"><div class="key-reveal-label">Alphabet Type</div><div class="key-reveal-value">${(p.keyType||'').toUpperCase()}</div></div>`;
     if(p.keyword) html+=`<div class="key-reveal-block"><div class="key-reveal-label">Keyword</div><div class="key-reveal-value">${p.keyword}</div></div>`;
-  } else if (p.type==='porta-analysis') {
-    html+=`<div class="key-reveal-block"><div class="key-reveal-label">Key</div><div class="key-reveal-value">${p.key}</div></div>`;
   } else if (p.type==='frac-morse') {
     html+=`<div class="key-reveal-block"><div class="key-reveal-label">Keyword</div><div class="key-reveal-value">${p.key.keyword}</div></div>`;
   } else if (p.type==='nihilist') {
@@ -1755,7 +1900,7 @@ async function generatePrintTest() {
   const saved = currentProblem;
   const savedCipher = currentCipher;
 
-  const types = ['caesar','aristocrat','patristocrat','xenocrypt','vigenere','porta','hill2','affine','baconian','morbit','nihilist','checkerboard','railfence','cryptarithm'];
+  const types = ['aristocrat','patristocrat','xenocrypt','porta','hill2','hill3','baconian','frac-morse','nihilist','checkerboard','columnar','cryptarithm'];
   const problems = [];
   for (const t of types) {
     await generateProblem(t);

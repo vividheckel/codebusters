@@ -33,28 +33,19 @@
     <div class="sidebar-header">SELECT CIPHER</div>
     <nav class="cipher-nav">
       <div class="nav-section-label">MONOALPHABETIC</div>
-      <button class="nav-btn active" data-cipher="caesar">Caesar</button>
-      <button class="nav-btn" data-cipher="atbash">Atbash</button>
-      <button class="nav-btn" data-cipher="aristocrat">Aristocrat</button>
-      <button class="nav-btn" data-cipher="aristocrat-mis">Aristocrat (Misspelled)</button>
+      <button class="nav-btn active" data-cipher="aristocrat">Aristocrat</button>
       <button class="nav-btn" data-cipher="patristocrat">Patristocrat</button>
-      <button class="nav-btn" data-cipher="affine">Affine</button>
       <button class="nav-btn" data-cipher="xenocrypt">Xenocrypt (Spanish)</button>
       <div class="nav-section-label">POLYALPHABETIC</div>
-      <button class="nav-btn" data-cipher="vigenere">Vigenere</button>
       <button class="nav-btn" data-cipher="porta">Porta</button>
-      <button class="nav-btn" data-cipher="porta-analysis">Porta (Cryptanalysis)</button>
       <button class="nav-btn" data-cipher="hill2">Hill 2&#215;2</button>
       <button class="nav-btn" data-cipher="hill3">Hill 3&#215;3</button>
       <button class="nav-btn" data-cipher="nihilist">Nihilist</button>
       <div class="nav-section-label">STEGANOGRAPHY</div>
       <button class="nav-btn" data-cipher="baconian">Baconian</button>
-      <div class="nav-section-label">TOMOGRAMMIC</div>
-      <button class="nav-btn" data-cipher="morbit">Morbit</button>
-      <button class="nav-btn" data-cipher="pollux">Pollux</button>
+      <div class="nav-section-label">FRACTIONATED</div>
       <button class="nav-btn" data-cipher="frac-morse">Fractionated Morse</button>
       <div class="nav-section-label">TRANSPOSITION</div>
-      <button class="nav-btn" data-cipher="railfence">Rail Fence</button>
       <button class="nav-btn" data-cipher="columnar">Complete Columnar</button>
       <div class="nav-section-label">POLYBIUS</div>
       <button class="nav-btn" data-cipher="checkerboard">Checkerboard</button>
@@ -95,25 +86,6 @@
         </tr></thead><tbody><tr>
           <th>Number</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td>
         </tr></tbody></table></div>
-      </div>
-
-      <div class="ref-section">
-        <div class="ref-section-title">ATBASH (A&#8596;Z, B&#8596;Y...)</div>
-        <div style="overflow-x:auto;"><table class="ref-table"><thead><tr>
-          <th>Plain</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td><td>G</td><td>H</td><td>I</td><td>J</td><td>K</td><td>L</td><td>M</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td>
-        </tr></thead><tbody><tr>
-          <th>Cipher</th><td>Z</td><td>Y</td><td>X</td><td>W</td><td>V</td><td>U</td><td>T</td><td>S</td><td>R</td><td>Q</td><td>P</td><td>O</td><td>N</td><td>M</td><td>L</td><td>K</td><td>J</td><td>I</td><td>H</td><td>G</td><td>F</td><td>E</td><td>D</td><td>C</td><td>B</td><td>A</td>
-        </tr></tbody></table></div>
-      </div>
-
-      <div class="ref-section">
-        <div class="ref-section-title">AFFINE VALID 'a' VALUES &amp; INVERSES (mod 26)</div>
-        <div style="overflow-x:auto;"><table class="ref-table"><thead><tr>
-          <th>a</th><td>1</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td><td>15</td><td>17</td><td>19</td><td>21</td><td>23</td><td>25</td>
-        </tr></thead><tbody><tr>
-          <th>a&#8315;&#185;</th><td>1</td><td>9</td><td>21</td><td>15</td><td>3</td><td>19</td><td>7</td><td>23</td><td>11</td><td>5</td><td>17</td><td>25</td>
-        </tr></tbody></table></div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">E(x) = (ax + b) mod 26 &nbsp;|&nbsp; D(x) = a&#8315;&#185;(x &#8722; b) mod 26</div>
       </div>
 
       <div class="ref-section">
@@ -180,7 +152,7 @@
           <div class="ref-morse-e"><span class="ref-morse-l">8</span><span>&#8211;&#8211;&#8211;&#183;&#183;</span></div>
           <div class="ref-morse-e"><span class="ref-morse-l">9</span><span>&#8211;&#8211;&#8211;&#8211;&#183;</span></div>
         </div>
-        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">In Morbit/Pollux: X = separator between letters and words</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">In Fractionated Morse: X = separator between letters and words</div>
       </div>
 
       <div class="ref-section">

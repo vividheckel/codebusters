@@ -85,16 +85,71 @@ const Aristocrat = {
   type: 'Monoalphabetic',
   description: 'Standard substitution cipher — no letter maps to itself.',
 
+  // Shared keyword pool for K1/K2 generation
+  KEYWORDS: [
+    'ABLE','ACID','ARCH','ARMY','ARTS','AXLE','BAKE','BANE','BARK','BEAR','BELL','BELT',
+    'BEST','BILE','BIND','BITE','BLUR','BOLD','BOLT','BONE','BREW','BUCK','BUFF','BULK',
+    'BURN','CAGE','CALM','CAPE','CAVE','CHIP','CITE','CLAN','CLAW','CLAY','CLUE','COAL',
+    'COIL','CORE','COUP','COVE','CRAM','CREW','CROP','CURL','DARE','DARK','DART','DASH',
+    'DAWN','DEAR','DEER','DEFT','DENY','DIAL','DICE','DIET','DOCK','DOME','DOVE','DRAG',
+    'DRAW','DRIP','DROP','DRUM','DUNE','EARL','EARN','EDGE','EMIT','ENVY','EPIC','FADE',
+    'FAIL','FAIR','FAME','FATE','FEAT','FELT','FILE','FIND','FIRE','FIRM','FIST','FLAG',
+    'FLAT','FLEX','FLIP','FLOW','FOAM','FOLD','FOND','FORE','FORK','FORM','FOWL','FUME',
+    'FUND','FUSE','GAME','GAZE','GEAR','GERM','GIVE','GLEE','GLOW','GOAL','GOAT','GOLD',
+    'GOWN','GRAB','GRIN','GRIP','GULF','HACK','HAIL','HALT','HANG','HARD','HASH','HAWK',
+    'HAZE','HEAP','HEAT','HEEL','HERB','HIGH','HIRE','HIVE','HOLD','HOLE','HOLY','HOME',
+    'HOOK','HOPE','HORN','HOST','HUGE','HUMP','HUNT','HURL','HYMN','IDLE','IRIS','ISLE',
+    'JAIL','JUMP','KEEN','KICK','KILL','KIND','KNIT','KNOB','LACE','LACK','LAKE','LAMB',
+    'LAMP','LEAD','LEAN','LEAF','LEND','LENS','LIFT','LIKE','LIME','LINE','LINK','LION',
+    'LIVE','LOAN','LOCK','LORE','LOVE','LUCK','LURE','LUSH','LUST','MADE','MAIL','MAIN',
+    'MAKE','MALT','MARE','MARK','MAST','MAZE','MEAL','MEAN','MEAT','MELT','MESH','MILD',
+    'MILL','MIND','MINE','MINT','MIST','MOAN','MOCK','MOLE','MONK','MOPE','MOSS','MOTH',
+    'MOVE','MUCH','MULE','MUSE','MYTH','NAIL','NAME','NAVY','NEAT','NEED','NEST','NICE',
+    'NORM','NOSE','OATS','OATH','OMEN','ONCE','ORCA','OVER','PAGE','PAIN','PALE','PALM',
+    'PANG','PARK','PART','PASS','PATH','PAVE','PAWN','PEAK','PEAR','PEST','PICK','PILE',
+    'PINE','PLAY','PLOT','PLUM','POEM','POKE','POND','PORE','POSE','PREY','PRIM','PUMP',
+    'PURE','PUSH','RACK','RAGE','RAIL','RAIN','RAKE','RANT','RAFT','REAL','REIN','RELY',
+    'REND','RICH','RIDE','RIFT','RING','RISK','RITE','ROAM','ROBE','ROCK','ROLE','ROOF',
+    'ROPE','ROSE','RUIN','RULE','RUSH','RUST','SAGE','SAIL','SALT','SAND','SAVE','SEAL',
+    'SEED','SILK','SINK','SLAM','SLAP','SLIM','SLIP','SLOW','SLUG','SNAP','SOCK','SOIL',
+    'SOLE','SONG','SOOT','SORE','SOUL','SPAN','SPIN','SPIT','SPOT','SPUR','STAR','STAY',
+    'STEM','STEP','STIR','STOP','SUIT','TALE','TALK','TALL','TAME','TANK','TARE','TASK',
+    'TEAL','TENT','TERM','TIDE','TILE','TILL','TIRE','TOIL','TOLL','TOMB','TORN','TOUR',
+    'TOWN','TRAM','TREE','TRIM','TRIO','TRIP','TUBE','TUCK','TUNE','TURN','UGLY','UNDO',
+    'UNIT','VALE','VANE','VASE','VEIL','VEIN','VENT','VEST','VETO','VICE','VOID','VOLT',
+    'VOTE','WADE','WAIL','WAKE','WALL','WAND','WANE','WARD','WARN','WARP','WASH','WAVE',
+    'WEAL','WEEP','WELD','WELL','WEND','WICK','WIDE','WILE','WILL','WIND','WINE','WING',
+    'WISE','WISP','WOOD','WORD','WORK','WORN','WRAP','WREN','YAWN','YEAR','YELL','ZEAL',
+    'ZERO','ZINC','ZONE','ZOOM',
+    // Longer keywords (5-9 letters) for richer alphabets
+    'CIPHER','SECRET','DECODE','PUZZLE','SIGNAL','ENIGMA','VECTOR','SHADOW','BINARY',
+    'PLANET','COMET','ORBIT','LASER','PRISM','GRAPH','LOGIC','AXIOM','PROOF','RATIO',
+    'ANGLE','PRIME','DIGIT','RADIX','SIGMA','DELTA','OMEGA','GAMMA','ALPHA','THETA',
+    'BEACON','CASTLE','DANCER','FALCON','GRAVEL','HUNTER','INSECT','JACKET','KERNEL',
+    'LANCER','MORTAR','NAPKIN','OYSTER','PARROT','QUARTZ','RABBIT','SADDLE','TABLET',
+    'WALNUT','FATHOM','COBALT','MAGNET','BRONZE','CHROME','HELIUM','RADIUM','NICKEL',
+    'BARIUM','SULFUR','CARBON','NEON','ARGON','XENON','KRYPTON','IODINE','CESIUM',
+    'LITHIUM','CALCIUM','SILICON','GALLIUM','ARSENIC','BROMINE','INDIUM','ANTIMONY',
+    'BISCUIT','CABINET','DOLPHIN','ELBOW','FLANNEL','GOBLIN','HAMSTER','INKWELL',
+    'JAVELIN','LANTERN','MONARCH','NOSTRIL','OBSCURE','PILGRIM','QUANTUM','RATCHET',
+    'SATCHEL','TENDRIL','USURPER','VARNISH','WARLOCK','XYLOPHONE','YOGURT','ZEALOUS',
+    'BLANKET','CATFISH','DARKROOM','EMBASSY','FOXHOUND','GATEWAY','HATBOX','ICEPACK',
+    'JAWBONE','KEYSTONE','LAMPREY','MUSTANG','NETWORK','OUTLOOK','PADDOCK','RINGWORM',
+    'SNOWPLOW','TURNPIKE','UPSWING','VANTAGE','WAYWARD','BOXCAR','CYCLONE','DUNGEON',
+    'CRYSTAL','DYNAMO','FORMULA','HARMONY','IMPULSE','JOURNEY','KEYNOTE','LABYRINTH',
+    'MANDATE','NETWORK','OBSCURE','PATTERN','QUARREL','RADIANT','SCIENCE','TRIUMPH',
+    'UNIFORM','VENTURE','WARRIOR','COMPLEX','BRACKET','CLIMATE','CONTOUR','DIAGRAM'
+  ],
+
   generateKey(keyType = 'random') {
     if (keyType === 'K1') return this.generateK1();
     if (keyType === 'K2') return this.generateK2();
-    // Random
+    // Random derangement
     const key = {};
     const available = [...ALPHABET];
     for (const c of ALPHABET) {
       const filtered = available.filter(a => a !== c);
       if (filtered.length === 0) {
-        // swap with last
         const remaining = available[0];
         if (remaining !== c) {
           key[c] = remaining;
@@ -124,26 +179,28 @@ const Aristocrat = {
     return key;
   },
 
+  // K1: keyword appears in the CIPHER alphabet.
+  // Plain:  A B C D E F ... Z   (standard order)
+  // Cipher: [keyword unique chars + remaining letters, rotated by offset]
+  // So the cipher row contains the keyword as a visible run.
   generateK1() {
-    const keywords = ['CIPHER', 'SECRET', 'DECODE', 'PUZZLE', 'MATRIX', 'SIGNAL', 'ENIGMA', 'VECTOR', 'SHADOW', 'BINARY']; // TODO: generate keywords from word list
-    const kw = keywords[randInt(0, keywords.length - 1)];
-    const offset = randInt(0, 20);
-    const key = {};
-    const used = new Set(kw.split(''));
-    const kwUniq = [...new Set(kw.split(''))];
+    const kw = this.KEYWORDS[randInt(0, this.KEYWORDS.length - 1)];
+    const kwUniq = [...new Set(kw.toUpperCase().split(''))];
+    const used = new Set(kwUniq);
     const remainder = ALPHABET.split('').filter(c => !used.has(c));
-    const fullAlpha = [...kwUniq, ...remainder];
+    const cipherAlpha = [...kwUniq, ...remainder]; // 26 unique chars; keyword visible at start
+    const offset = randInt(0, 25);
+    const key = {};
     for (let i = 0; i < 26; i++) {
-      key[ALPHABET[i]] = fullAlpha[mod(i - offset, 26)];
+      key[ALPHABET[i]] = cipherAlpha[mod(i + offset, 26)];
     }
-    // Fix self-mappings with swaps
+    // Fix self-mappings: swap with the next letter in cipher order
     for (let i = 0; i < 26; i++) {
       const c = ALPHABET[i];
       if (key[c] === c) {
-        // swap with neighbor
         const j = mod(i + 1, 26);
         const d = ALPHABET[j];
-        if (key[d] !== d) {
+        if (key[d] !== c && key[c] !== d) {
           [key[c], key[d]] = [key[d], key[c]];
         }
       }
@@ -151,8 +208,34 @@ const Aristocrat = {
     return { key, keyword: kw, type: 'K1' };
   },
 
+  // K2: keyword appears in the PLAIN alphabet.
+  // Plain:  [keyword unique chars + remaining letters, rotated by offset]
+  // Cipher: A B C D E F ... Z  (standard order — cipher is just the alphabet)
+  // So looking at the substitution table row-by-row, the PLAIN side reveals the keyword.
   generateK2() {
-    return this.generateK1(); // TODO: why is K2 the same? this should be key shows up in plaintext alphabet, not ciphertext
+    const kw = this.KEYWORDS[randInt(0, this.KEYWORDS.length - 1)];
+    const kwUniq = [...new Set(kw.toUpperCase().split(''))];
+    const used = new Set(kwUniq);
+    const remainder = ALPHABET.split('').filter(c => !used.has(c));
+    const plainAlpha = [...kwUniq, ...remainder]; // keyword visible in plaintext positions
+    const offset = randInt(0, 25);
+    const key = {};
+    for (let i = 0; i < 26; i++) {
+      // plainAlpha[i] encrypts to ALPHABET[(i+offset)%26]
+      key[plainAlpha[i]] = ALPHABET[mod(i + offset, 26)];
+    }
+    // Fix self-mappings
+    for (let i = 0; i < 26; i++) {
+      const c = plainAlpha[i];
+      if (key[c] === c) {
+        const j = mod(i + 1, 26);
+        const d = plainAlpha[j];
+        if (key[d] !== c && key[c] !== d) {
+          [key[c], key[d]] = [key[d], key[c]];
+        }
+      }
+    }
+    return { key, keyword: kw, type: 'K2' };
   },
 
   encrypt(text, key) {
@@ -353,17 +436,25 @@ const Hill2 = {
   description: 'Matrix multiplication mod 26 with 2×2 key matrix.',
 
   VALID_KEYS: [
-    { key: [[1,1],[1,2]], word: 'ABBC', det: 1 },
-    { key: [[3,2],[5,3]], word: 'DCFD', det: -1 },
-    { key: [[6,1],[5,8]], word: 'GBFI', det: 43 },
-    { key: [[2,1],[5,3]], word: 'CBFD', det: 1 },
-    { key: [[3,1],[7,3]], word: 'DBHD', det: 2 },
-    { key: [[5,2],[7,3]], word: 'FCHD', det: 1 },
-    { key: [[2,3],[1,4]], word: 'CDBE', det: 5 },
-    { key: [[3,3],[2,5]], word: 'DDCF', det: 9 },
-    { key: [[1,2],[1,3]], word: 'BCBD', det: 1 },
-    { key: [[2,5],[1,3]], word: 'CFBD', det: 1 },
-  ], // TODO: get keys that are actual words, not just random matrices with det coprime to 26
+    { key: [[7,4],[11,15]],   inv: [[19,14],[19,21]], word: 'HELP' },
+    { key: [[9,20],[12,15]],  inv: [[11,20],[12,17]], word: 'JUMP' },
+    { key: [[1,4],[18,19]],   inv: [[7,4],[18,25]],   word: 'BEST' },
+    { key: [[1,20],[17,13]],  inv: [[13,10],[15,19]], word: 'BURN' },
+    { key: [[1,14],[11,3]],   inv: [[11,18],[3,21]],  word: 'BOLD' },
+    { key: [[19,17],[0,15]],  inv: [[11,17],[0,7]],   word: 'TRAP' },
+    { key: [[25,4],[0,11]],   inv: [[25,24],[0,19]],  word: 'ZEAL' },
+    { key: [[1,4],[0,17]],    inv: [[1,12],[0,23]],   word: 'BEAR' },
+    { key: [[1,4],[11,11]],   inv: [[17,8],[9,11]],   word: 'BELL' },
+    { key: [[1,11],[20,17]],  inv: [[19,3],[22,21]],  word: 'BLUR' },
+    { key: [[5,4],[17,13]],   inv: [[13,10],[23,7]],  word: 'FERN' },
+    { key: [[9,4],[18,19]],   inv: [[17,6],[14,19]],  word: 'JEST' },
+    { key: [[13,4],[17,3]],   inv: [[25,10],[23,13]], word: 'NERD' },
+    { key: [[17,8],[5,19]],   inv: [[11,20],[19,3]],  word: 'RIFT' },
+    { key: [[7,8],[13,19]],   inv: [[15,6],[13,11]],  word: 'HINT' },
+    { key: [[9,14],[11,19]],  inv: [[21,16],[7,25]],  word: 'JOLT' },
+    { key: [[17,4],[8,13]],   inv: [[13,18],[10,21]], word: 'REIN' },
+    { key: [[21,14],[11,19]], inv: [[23,20],[25,9]],  word: 'VOLT' },
+  ],
 
   MOD_INV_TABLE: { 1:1, 3:9, 5:21, 7:15, 9:3, 11:19, 15:7, 17:23, 19:11, 21:5, 23:17, 25:25 },
 
@@ -401,7 +492,7 @@ const Hill2 = {
   },
 
   decrypt(text, keyObj) {
-    const inv = this.getInverse(keyObj.key);
+    const inv = keyObj.inv || this.getInverse(keyObj.key);
     const letters = text.toUpperCase().replace(/[^A-Z]/g, '');
     let result = '';
     for (let i = 0; i < letters.length; i += 2) {
@@ -423,26 +514,71 @@ const Hill3 = {
 
   VALID_KEYS: [
     {
-      key: [[6,1,8],[0,5,3],[6,8,9]],
-      inv: [[19,22,15],[14,20,10],[6,12,17]],
-      word: 'GBIADFC GJ'
+      word: 'CAREFULLY',
+      key: [[2,0,17],[4,5,20],[11,11,24]],
+      inv: [[10,19,15],[24,23,18],[5,10,12]]
     },
     {
-      key: [[1,0,0],[0,1,0],[0,0,1]],
-      inv: [[1,0,0],[0,1,0],[0,0,1]],
-      word: 'Identity'
+      word: 'HEARTBEAT',
+      key: [[7,4,0],[17,19,1],[4,0,19]],
+      inv: [[25,18,10],[15,1,15],[18,14,13]]
     },
     {
-      key: [[3,2,5],[6,7,1],[1,8,3]],
-      inv: [[25,22,23],[23,8,19],[23,24,3]],
-      word: 'DCHGBIB ID'
+      word: 'LANDSCAPE',
+      key: [[11,0,13],[3,18,2],[0,15,4]],
+      inv: [[6,13,0],[2,10,21],[25,21,6]]
     },
     {
-      key: [[2,1,0],[0,3,2],[1,0,1]],
-      inv: [[3,1,24],[2,2,24],[3,1,6]],
-      word: 'CBADCBABA'
-    }
-  ], // TODO: get keys that are actual words, not just random matrices with det coprime to 26
+      word: 'STATEMENT',
+      key: [[18,19,0],[19,4,12],[4,13,19]],
+      inv: [[18,25,2],[9,16,20],[1,18,1]]
+    },
+    {
+      word: 'TRANSLATE',
+      key: [[19,17,0],[13,18,11],[0,19,4]],
+      inv: [[11,14,7],[0,18,9],[13,25,3]]
+    },
+    {
+      word: 'UNIVERSAL',
+      key: [[20,13,8],[21,4,17],[18,0,11]],
+      inv: [[14,13,17],[15,10,2],[22,0,3]]
+    },
+    {
+      word: 'BLACKBIRD',
+      key: [[1,11,0],[2,10,1],[8,17,3]],
+      inv: [[13,5,7],[6,9,23],[18,5,16]]
+    },
+    {
+      word: 'FACTORING',
+      key: [[5,0,2],[19,14,17],[8,13,6]],
+      inv: [[19,0,24],[22,14,5],[5,13,18]]
+    },
+    {
+      word: 'LIMESTONE',
+      key: [[11,8,12],[4,18,19],[14,13,4]],
+      inv: [[23,10,20],[8,16,17],[4,17,18]]
+    },
+    {
+      word: 'NATURALLY',
+      key: [[13,0,19],[20,17,0],[11,11,24]],
+      inv: [[6,9,5],[22,17,14],[11,13,13]]
+    },
+    {
+      word: 'THUMBNAIL',
+      key: [[19,7,20],[12,1,13],[0,8,11]],
+      inv: [[7,15,5],[20,3,5],[2,12,13]]
+    },
+    {
+      word: 'VALIDATES',
+      key: [[21,0,11],[8,3,0],[19,4,18]],
+      inv: [[2,18,19],[12,13,10],[1,20,11]]
+    },
+    {
+      word: 'FAVORABLE',
+      key: [[5,0,21],[14,17,0],[1,11,4]],
+      inv: [[20,19,25],[8,15,10],[25,19,25]]
+    },
+  ],
 
   matMul3(mat, vec, m = 26) {
     return [
