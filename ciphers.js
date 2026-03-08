@@ -125,7 +125,7 @@ const Aristocrat = {
   },
 
   generateK1() {
-    const keywords = ['CIPHER', 'SECRET', 'DECODE', 'PUZZLE', 'MATRIX', 'SIGNAL', 'ENIGMA', 'VECTOR', 'SHADOW', 'BINARY'];
+    const keywords = ['CIPHER', 'SECRET', 'DECODE', 'PUZZLE', 'MATRIX', 'SIGNAL', 'ENIGMA', 'VECTOR', 'SHADOW', 'BINARY']; // TODO: generate keywords from word list
     const kw = keywords[randInt(0, keywords.length - 1)];
     const offset = randInt(0, 20);
     const key = {};
@@ -152,7 +152,7 @@ const Aristocrat = {
   },
 
   generateK2() {
-    return this.generateK1();
+    return this.generateK1(); // TODO: why is K2 the same? this should be key shows up in plaintext alphabet, not ciphertext
   },
 
   encrypt(text, key) {
@@ -305,7 +305,7 @@ const Porta = {
     { keys: 'YZ', cipher: 'ZNOPQRSTUVWXY' },
   ],
 
-  KEYWORDS: ['PORTA', 'SIGNAL', 'CIPHER', 'BREAKER', 'VECTOR'],
+  KEYWORDS: ['PORTA', 'SIGNAL', 'CIPHER', 'BREAKER', 'VECTOR'], // TODO: generate keys
 
   generateKey() {
     return this.KEYWORDS[randInt(0, this.KEYWORDS.length - 1)];
@@ -363,7 +363,7 @@ const Hill2 = {
     { key: [[3,3],[2,5]], word: 'DDCF', det: 9 },
     { key: [[1,2],[1,3]], word: 'BCBD', det: 1 },
     { key: [[2,5],[1,3]], word: 'CFBD', det: 1 },
-  ],
+  ], // TODO: get keys that are actual words, not just random matrices with det coprime to 26
 
   MOD_INV_TABLE: { 1:1, 3:9, 5:21, 7:15, 9:3, 11:19, 15:7, 17:23, 19:11, 21:5, 23:17, 25:25 },
 
@@ -442,7 +442,7 @@ const Hill3 = {
       inv: [[3,1,24],[2,2,24],[3,1,6]],
       word: 'CBADCBABA'
     }
-  ],
+  ], // TODO: get keys that are actual words, not just random matrices with det coprime to 26
 
   matMul3(mat, vec, m = 26) {
     return [
@@ -486,7 +486,7 @@ const Hill3 = {
 // =============================================
 // BACONIAN
 // =============================================
-const Baconian = {
+const Baconian = { // TODO: implement the 3 types of baconian
   name: 'Baconian',
   type: 'Steganography',
   description: 'Each letter encoded as 5 A/B characters (24-letter form: I=J, U=V).',
@@ -715,7 +715,7 @@ const Cryptarithm = {
     { equation: 'FORTY + TEN + TEN = SIXTY', solution: { F:2,O:9,R:7,T:1,Y:8,E:5,N:0,S:6,I:4,X:3 } },
     { equation: 'BIG + CAT = LION', solution: null, note:'Multiple solutions' },
     { equation: 'COW + OAT = MEAL', solution: { C:5,O:7,W:1,A:9,T:4,M:6,E:8,L:0 }, note:'Approx.' },
-  ],
+  ], // TODO: generate more problems, ideally with unique solutions
 
   generateKey() {
     const idx = randInt(0, this.PROBLEMS.length - 1);
