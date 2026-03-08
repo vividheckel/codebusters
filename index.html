@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeBusters Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Share+Tech+Mono&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="top-bar-left">
+    <span class="site-title">CODEBUSTERS</span>
+    <span class="site-sub">Division C Practice</span>
+  </div>
+  <div class="top-bar-right">
+    <button class="btn-icon" id="refGuideBtn" title="Reference Guide">&#128203; REF</button>
+    <button class="btn-icon" id="printTestBtn" title="Generate &amp; Print Practice Test">&#9113; PRINT TEST</button>
+    <button class="btn-icon" id="toggleTimer" title="Toggle Timer">&#9201;</button>
+    <div id="timerDisplay" class="timer-display">
+      <span id="timerText">00:00</span>
+      <button class="btn-timer-ctrl" id="startStopTimer">&#9654;</button>
+      <button class="btn-timer-ctrl" id="resetTimer">&#8635;</button>
+    </div>
+  </div>
+</div>
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">SELECT CIPHER</div>
+    <nav class="cipher-nav">
+      <div class="nav-section-label">MONOALPHABETIC</div>
+      <button class="nav-btn active" data-cipher="caesar">Caesar</button>
+      <button class="nav-btn" data-cipher="atbash">Atbash</button>
+      <button class="nav-btn" data-cipher="aristocrat">Aristocrat</button>
+      <button class="nav-btn" data-cipher="aristocrat-mis">Aristocrat (Misspelled)</button>
+      <button class="nav-btn" data-cipher="patristocrat">Patristocrat</button>
+      <button class="nav-btn" data-cipher="affine">Affine</button>
+      <button class="nav-btn" data-cipher="xenocrypt">Xenocrypt (Spanish)</button>
+      <div class="nav-section-label">POLYALPHABETIC</div>
+      <button class="nav-btn" data-cipher="vigenere">Vigenere</button>
+      <button class="nav-btn" data-cipher="porta">Porta</button>
+      <button class="nav-btn" data-cipher="porta-analysis">Porta (Cryptanalysis)</button>
+      <button class="nav-btn" data-cipher="hill2">Hill 2&#215;2</button>
+      <button class="nav-btn" data-cipher="hill3">Hill 3&#215;3</button>
+      <button class="nav-btn" data-cipher="nihilist">Nihilist</button>
+      <div class="nav-section-label">STEGANOGRAPHY</div>
+      <button class="nav-btn" data-cipher="baconian">Baconian</button>
+      <div class="nav-section-label">TOMOGRAMMIC</div>
+      <button class="nav-btn" data-cipher="morbit">Morbit</button>
+      <button class="nav-btn" data-cipher="pollux">Pollux</button>
+      <button class="nav-btn" data-cipher="frac-morse">Fractionated Morse</button>
+      <div class="nav-section-label">TRANSPOSITION</div>
+      <button class="nav-btn" data-cipher="railfence">Rail Fence</button>
+      <button class="nav-btn" data-cipher="columnar">Complete Columnar</button>
+      <div class="nav-section-label">POLYBIUS</div>
+      <button class="nav-btn" data-cipher="checkerboard">Checkerboard</button>
+      <div class="nav-section-label">MATH</div>
+      <button class="nav-btn" data-cipher="cryptarithm">Cryptarithm</button>
+    </nav>
+  </div>
+  <!-- CONTENT -->
+  <div class="content-area" id="contentArea"></div>
+</div>
+
+<!-- ANSWER MODAL -->
+<div class="modal fade" id="answerModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content cipher-modal">
+      <div class="modal-header">
+        <h5 class="modal-title">SOLUTION &amp; KEY</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="answerModalBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- REF GUIDE OVERLAY -->
+<div id="refGuideModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:8px;max-width:820px;width:95vw;max-height:90vh;overflow-y:auto;position:relative;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border-color);position:sticky;top:0;background:var(--bg-card);z-index:1;">
+      <span style="font-family:var(--font-title);font-size:14px;letter-spacing:4px;color:var(--accent);">REFERENCE GUIDE</span>
+      <button id="closeRefGuide" style="background:none;border:none;color:var(--text-secondary);font-size:22px;cursor:pointer;line-height:1;">&#10005;</button>
+    </div>
+    <div style="padding:20px;">
+
+      <div class="ref-section">
+        <div class="ref-section-title">ALPHABET NUMBERS</div>
+        <div style="overflow-x:auto;"><table class="ref-table"><thead><tr>
+          <th>Letter</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td><td>G</td><td>H</td><td>I</td><td>J</td><td>K</td><td>L</td><td>M</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td>
+        </tr></thead><tbody><tr>
+          <th>Number</th><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td><td>7</td><td>8</td><td>9</td><td>10</td><td>11</td><td>12</td><td>13</td><td>14</td><td>15</td><td>16</td><td>17</td><td>18</td><td>19</td><td>20</td><td>21</td><td>22</td><td>23</td><td>24</td><td>25</td>
+        </tr></tbody></table></div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">ATBASH (A&#8596;Z, B&#8596;Y...)</div>
+        <div style="overflow-x:auto;"><table class="ref-table"><thead><tr>
+          <th>Plain</th><td>A</td><td>B</td><td>C</td><td>D</td><td>E</td><td>F</td><td>G</td><td>H</td><td>I</td><td>J</td><td>K</td><td>L</td><td>M</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td>
+        </tr></thead><tbody><tr>
+          <th>Cipher</th><td>Z</td><td>Y</td><td>X</td><td>W</td><td>V</td><td>U</td><td>T</td><td>S</td><td>R</td><td>Q</td><td>P</td><td>O</td><td>N</td><td>M</td><td>L</td><td>K</td><td>J</td><td>I</td><td>H</td><td>G</td><td>F</td><td>E</td><td>D</td><td>C</td><td>B</td><td>A</td>
+        </tr></tbody></table></div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">AFFINE VALID 'a' VALUES &amp; INVERSES (mod 26)</div>
+        <div style="overflow-x:auto;"><table class="ref-table"><thead><tr>
+          <th>a</th><td>1</td><td>3</td><td>5</td><td>7</td><td>9</td><td>11</td><td>15</td><td>17</td><td>19</td><td>21</td><td>23</td><td>25</td>
+        </tr></thead><tbody><tr>
+          <th>a&#8315;&#185;</th><td>1</td><td>9</td><td>21</td><td>15</td><td>3</td><td>19</td><td>7</td><td>23</td><td>11</td><td>5</td><td>17</td><td>25</td>
+        </tr></tbody></table></div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">E(x) = (ax + b) mod 26 &nbsp;|&nbsp; D(x) = a&#8315;&#185;(x &#8722; b) mod 26</div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">ENGLISH LETTER FREQUENCY (high &#8594; low)</div>
+        <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:3px;color:var(--text-primary);line-height:2;">E T A O I N S H R D L U C M F W Y P V B G K J Q X Z</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Common short words: THE AND IS IT IN OF TO A I BE HE AS AT DO GO NO</div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">BACONIAN TABLE (24-LETTER: I=J, U=V)</div>
+        <div class="ref-baconian-grid">
+          <div class="ref-bac-entry"><span class="ref-bac-l">A</span><span>AAAAA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">B</span><span>AAAAB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">C</span><span>AAABA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">D</span><span>AAABB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">E</span><span>AABAA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">F</span><span>AABAB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">G</span><span>AABBA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">H</span><span>AABBB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">I/J</span><span>ABAAA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">K</span><span>ABAAB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">L</span><span>ABABA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">M</span><span>ABABB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">N</span><span>ABBAA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">O</span><span>ABBAB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">P</span><span>ABBBA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">Q</span><span>ABBBB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">R</span><span>BAAAA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">S</span><span>BAAAB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">T</span><span>BAABA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">U/V</span><span>BAABB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">W</span><span>BABAA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">X</span><span>BABAB</span></div>
+          <div class="ref-bac-entry"><span class="ref-bac-l">Y</span><span>BABBA</span></div><div class="ref-bac-entry"><span class="ref-bac-l">Z</span><span>BABBB</span></div>
+        </div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">MORSE CODE (&#183; = dot, &#8211; = dash)</div>
+        <div class="ref-morse-grid">
+          <div class="ref-morse-e"><span class="ref-morse-l">A</span><span>&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">B</span><span>&#8211;&#183;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">C</span><span>&#8211;&#183;&#8211;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">D</span><span>&#8211;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">E</span><span>&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">F</span><span>&#183;&#183;&#8211;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">G</span><span>&#8211;&#8211;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">H</span><span>&#183;&#183;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">I</span><span>&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">J</span><span>&#183;&#8211;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">K</span><span>&#8211;&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">L</span><span>&#183;&#8211;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">M</span><span>&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">N</span><span>&#8211;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">O</span><span>&#8211;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">P</span><span>&#183;&#8211;&#8211;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">Q</span><span>&#8211;&#8211;&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">R</span><span>&#183;&#8211;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">S</span><span>&#183;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">T</span><span>&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">U</span><span>&#183;&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">V</span><span>&#183;&#183;&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">W</span><span>&#183;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">X</span><span>&#8211;&#183;&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">Y</span><span>&#8211;&#183;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">Z</span><span>&#8211;&#8211;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">0</span><span>&#8211;&#8211;&#8211;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">1</span><span>&#183;&#8211;&#8211;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">2</span><span>&#183;&#183;&#8211;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">3</span><span>&#183;&#183;&#183;&#8211;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">4</span><span>&#183;&#183;&#183;&#183;&#8211;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">5</span><span>&#183;&#183;&#183;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">6</span><span>&#8211;&#183;&#183;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">7</span><span>&#8211;&#8211;&#183;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">8</span><span>&#8211;&#8211;&#8211;&#183;&#183;</span></div>
+          <div class="ref-morse-e"><span class="ref-morse-l">9</span><span>&#8211;&#8211;&#8211;&#8211;&#183;</span></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:6px;">In Morbit/Pollux: X = separator between letters and words</div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">PORTA TABLE</div>
+        <div style="overflow-x:auto;"><table class="ref-porta-table">
+          <thead><tr><th>Keys</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th><th>L</th><th>M</th></tr></thead>
+          <tbody>
+            <tr><td class="pk">A,B</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td></tr>
+            <tr><td class="pk">C,D</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td></tr>
+            <tr><td class="pk">E,F</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td></tr>
+            <tr><td class="pk">G,H</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td></tr>
+            <tr><td class="pk">I,J</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td></tr>
+            <tr><td class="pk">K,L</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td></tr>
+            <tr><td class="pk">M,N</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td></tr>
+            <tr><td class="pk">O,P</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td></tr>
+            <tr><td class="pk">Q,R</td><td>V</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td></tr>
+            <tr><td class="pk">S,T</td><td>W</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td></tr>
+            <tr><td class="pk">U,V</td><td>X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td></tr>
+            <tr><td class="pk">W,X</td><td>Y</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td></tr>
+            <tr><td class="pk">Y,Z</td><td>Z</td><td>N</td><td>O</td><td>P</td><td>Q</td><td>R</td><td>S</td><td>T</td><td>U</td><td>V</td><td>W</td><td>X</td><td>Y</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="ref-section">
+        <div class="ref-section-title">SPANISH LETTER FREQUENCY (Xenocrypt)</div>
+        <div style="font-family:var(--font-mono);font-size:13px;letter-spacing:3px;color:var(--text-primary);line-height:2;">E A O S N R I L D T U C M P B H Q Y V G F Z J &#209; X K W</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="ciphers.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
